@@ -1,0 +1,12 @@
+{
+  "2-reference-page-count.lua": "9196448d779659f15be376e34f80701c",
+  "2-update-patches.lua": "89fe88767eded0f00b2fb2bffc8b8bfd",
+  "2-change-status-bar-color.lua": "3b5b9f59120a6e4acd0ac23a97cdad22",
+  "2-filemanager-titlebar.lua": "c6a074b8a04b6f11ceccf1e9792858f4",
+  "2-statusbar-thin-chapter.lua": "2d130d61e14b0dba0bc247269e379101",
+  "2-screensaver-chapter.lua": "e586e0f5d22078e17b5461bb5c46c6f7",
+  "2-screensaver-cover.lua": "fa3389a949da483b50386d540b5c75e8",
+  "2-statusbar-better-compact.lua": "b9292711849f6f77c022fd5627af6d7b",
+  "2-statusbar-cycle-presets.lua": "41b6a9c1dc19fd5d9bba286712def95d",
+  "2-disable-top-menu-zones.lua": "f0851a9b44edd480c63815a1b9807410"
+}

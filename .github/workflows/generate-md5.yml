@@ -1,0 +1,53 @@
+name: Generate Lua MD5 Checksums
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.lua'
+
+jobs:
+  generate-checksums:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Generate updates.json with MD5 checksums
+        run: |
+          import os
+          import hashlib
+          import json
+
+          md5s = {}
+
+          for root, _, files in os.walk("."):
+              for file in files:
+                  if file.endswith(".lua"):
+                      path = os.path.join(root, file)
+                      with open(path, "rb") as f:
+                          file_data = f.read()
+                          md5 = hashlib.md5(file_data).hexdigest()
+                          md5s[path.lstrip("./")] = md5
+
+          with open("updates.json", "w") as f:
+              json.dump(md5s, f, indent=2)
+
+        shell: python
+
+      - name: Commit and push updates.json s
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add updates.json
+          git commit -m "Update updates.json with MD5 checksums" || echo "No changes to commit"
+          git push

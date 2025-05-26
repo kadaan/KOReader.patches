@@ -21,6 +21,7 @@ local time = require("ui/time")
 local T = require("ffi/util").template
 local _ = require("gettext")
 local Screen = Device.screen
+
 local logger = require("logger")
 
 -- Title bar config
@@ -234,7 +235,7 @@ end
 
 -- redraw the title bar
 function FileManager:updateTitleBarTitle()
-    if self.title_bar == nil then return end
+    if self.title_bar == nil or self._suspended then return end -- guard when suspended
 
     local titlebar_texts = {}
     for _, item in ipairs(config.order) do
@@ -276,11 +277,24 @@ function FileManager:updateTitleBarTitle()
     end
 end
 
+local orig_FileManager_onResume = FileManager.onResume
+function FileManager:onResume()
+    self._suspended = false
+    if orig_FileManager_onResume then orig_FileManager_onResume(self) end
+    self:updateTitleBarTitle()
+end
+
+local orig_FileManager_onSuspend = FileManager.onSuspend
+function FileManager:onSuspend()
+    self._suspended = true
+    UIManager:unschedule(self.updateTitleBarTitle)
+    if orig_FileManager_onSuspend then orig_FileManager_onSuspend(self) end
+end
+
 FileManager.onNetworkConnected = FileManager.updateTitleBarTitle
 FileManager.onNetworkDisconnected = FileManager.updateTitleBarTitle
 FileManager.onCharging = FileManager.updateTitleBarTitle
 FileManager.onNotCharging = FileManager.updateTitleBarTitle
-FileManager.onResume = FileManager.updateTitleBarTitle
 FileManager.onTimeFormatChanged = FileManager.updateTitleBarTitle
 FileManager.onFrontlightStateChanged = FileManager.updateTitleBarTitle
 
@@ -565,43 +579,37 @@ function FileManagerMenu:_get_title_bar_setting(setting)
 end
 
 -- Patch title bar menu
+local FileManagerMenu = require("apps/filemanager/filemanagermenu")
+local FileManagerMenuOrder = require("ui/elements/filemanager_menu_order")
 local orig_FileManagerMenu_setUpdateItemTable = FileManagerMenu.setUpdateItemTable
 
-FileManagerMenu.setUpdateItemTable = function(self)
-    orig_FileManagerMenu_setUpdateItemTable(self)
-
-    local buttons = FileManagerMenuOrder["KOMenu:menu_buttons"]
-    for i, button in ipairs(buttons) do
-        if button == "filemanager_settings" then
-            logger.info("Add title bar options in the file manager settings menu")
-
-            local setting_table = {}
-            for _, setting in ipairs(setting_menu_order) do
-                table.insert(setting_table, self:_get_title_bar_setting(setting))
-            end
-
-            local sub_item_table_func
-            sub_item_table_func = function()
-                local _table = {
-                    {
-                        text = _("Configure title bar"),
-                        sub_item_table = setting_table,
-                    },
-                    self:_title_bar_arrange_items(sub_item_table_func),
-                }
-                _table[#_table].separator = true
-                for _, item in ipairs(config.order) do
-                    table.insert(_table, self:_get_title_bar_item(item))
-                end
-                return _table
-            end
-
-            table.insert(self.tab_item_table[i], 1, {
-                text = _("Title bar"),
-                separator = true,
-                sub_item_table_func = sub_item_table_func,
-            })
-            break
-        end
+function FileManagerMenu:setUpdateItemTable()
+    local setting_table = {}
+    for _, setting in ipairs(setting_menu_order) do
+        table.insert(setting_table, self:_get_title_bar_setting(setting))
     end
+
+    local sub_item_table_func
+    sub_item_table_func = function()
+        local _table = {
+            {
+                text = _("Configure title bar"),
+                sub_item_table = setting_table,
+            },
+            self:_title_bar_arrange_items(sub_item_table_func),
+        }
+        _table[#_table].separator = true
+        for _, item in ipairs(config.order) do
+            table.insert(_table, self:_get_title_bar_item(item))
+        end
+        return _table
+    end
+
+    table.insert(FileManagerMenuOrder.filemanager_settings, 1, "title_bar")
+    self.menu_items.title_bar = {
+        text = _("Title bar"),
+        separator = true,
+        sub_item_table_func = sub_item_table_func,
+    }
+    orig_FileManagerMenu_setUpdateItemTable(self)
 end

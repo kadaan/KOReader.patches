@@ -1,3 +1,11 @@
-*.bat
-*.lnk
-*/*
+*
+!*.lua
+!*.png
+!*.svg
+!*.md
+!*.json
+!*/
+!*.yml
+!LICENSE
+!img/
+settings.json
