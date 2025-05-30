@@ -1,6 +1,8 @@
+local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
 local InfoMessage = require("ui/widget/infomessage")
 local NetworkManager = require("ui/network/manager")
+local Trapper = require("ui/trapper")
 local UIManager = require("ui/uimanager")
 local http = require("socket/http")
 local json = require("json")
@@ -12,7 +14,7 @@ local _ = require("gettext")
 local logger = require("logger")
 local T = require("ffi/util").template
 
-local UPDATES = "updates.json"
+local UPDATES = "updates.json" -- dict of md5 of lua files
 local GITHUB_REPO = "sebdelsol/KOReader.patches"
 local LOCAL_PATCHES = DataStorage:getDataDir() .. "/patches/"
 local ONLINE_PATCHES = "https://github.com/" .. GITHUB_REPO .. "/raw/refs/heads/main/"
@@ -41,18 +43,38 @@ local function downloadFile(url, path)
     logger.err("Failed to open target file for download: ", err or "Unknown error")
 end
 
-local message = {}
+-- ui
+local ui = {}
 
-function message:close()
+function ui:close()
     if self.shown then
         UIManager:close(self.shown)
         self.shown = nil
     end
 end
 
-function message:show(text, timeout)
+function ui:info(text)
     self:close()
-    self.shown = InfoMessage:new { text = text, timeout = timeout }
+    self.shown = InfoMessage:new { text = text, timeout = 5 }
+    UIManager:show(self.shown)
+end
+
+function ui:process(func, text)
+    self:close()
+    self.shown = InfoMessage:new { text = text, dismissable = false }
+    UIManager:show(self.shown)
+    UIManager:scheduleIn(0.1, func)
+end
+
+function ui:confirm(options)
+    self:close()
+    local params = {
+        text = options.text,
+        no_ok_button = options.one_button,
+    }
+    params[options.one_button and "cancel_text" or "ok_text"] = options.ok
+    params[options.one_button and "cancel_callback" or "ok_callback"] = options.callback
+    self.shown = ConfirmBox:new(params)
     UIManager:show(self.shown)
 end
 
@@ -69,7 +91,7 @@ local ota = {
     online_updates = ONLINE_PATCHES .. UPDATES,
 }
 
-function ota:checkUpdates()
+function ota:updates()
     if downloadFile(self.online_updates, self.local_updates) then
         logger.info("Patch updates list downloaded")
         local updates_file = io.open(self.local_updates, "r")
@@ -81,56 +103,114 @@ function ota:checkUpdates()
             return updates
         end
     end
-    message:show(_("Can't download patch updates..."), 5)
 end
 
-function ota:installPatch(url, patch_file, md5sum)
-    local new_patch_file = patch_file .. ".new"
-    if downloadFile(url, new_patch_file) then
-        logger.info("Patch downloaded:", new_patch_file)
-        local installed = md5.sumFile(new_patch_file) == md5sum and copy(new_patch_file, patch_file)
-        remove(new_patch_file)
-        logger.info("Patch " .. (installed and "" or "NOT ") .. "installed:", patch_file)
-        return installed
-    end
-end
+function ota:install(name, md5sum)
+    local install = { name = name:sub(1, -5), installed = false }
+    local file = self.local_patches .. name
 
-function ota:installUpdates(updates)
-    local updated = {}
-    for name, md5sum in pairs(updates) do
-        local patch_file = self.local_patches .. name
-        if
-            isFile(patch_file)
-            and md5.sumFile(patch_file) ~= md5sum
-            and self:installPatch(self.online_patches .. name, patch_file, md5sum)
-        then
-            table.insert(updated, name:sub(1, -5))
+    function install.isNew() return isFile(file) and md5.sumFile(file) ~= md5sum end
+
+    function install.apply()
+        local url = self.online_patches .. name
+        local new_file = file .. ".new"
+        if downloadFile(url, new_file) then
+            logger.info("Patch downloaded:", new_file)
+            install.installed = md5.sumFile(new_file) == md5sum and copy(new_file, file) -- validate & copy
+            logger.info("Patch " .. (self.installed and "" or "NOT ") .. "installed:", file)
+            remove(new_file)
         end
     end
-    return updated
+
+    return install
+end
+
+function ota:installs(updates)
+    local installs = {}
+    for name, md5sum in pairs(updates) do
+        local install = self:install(name, md5sum)
+        if install.isNew() then table.insert(installs, install) end
+    end
+
+    function installs.apply()
+        for _, install in ipairs(installs) do
+            install.apply()
+        end
+    end
+
+    function installs.text(installed, sep)
+        local texts = {}
+        for _, install in ipairs(installs) do
+            if install.installed == installed then table.insert(texts, install.name) end
+        end
+        return table.concat(texts, sep or "\n· ")
+    end
+
+    function installs.empty(installed)
+        for _, install in ipairs(installs) do
+            if install.installed == installed then return false end
+        end
+        return true
+    end
+
+    return installs
 end
 
 function ota:update()
-    if not isDir(self.local_patches) then return end -- no patches
+    if not isDir(self.local_patches) then
+        ui:info(_("You have no patches."))
+        return
+    end
     if not NetworkManager:isOnline() then
-        message:show(_("Please turn on wifi and try again."), 5)
+        ui:info(_("Please turn on wifi and try again."))
         return
     end
 
-    message:show(_("Check for patch updates..."))
-    UIManager:scheduleIn(1, function()
-        local updates = self:checkUpdates()
-        if updates then
-            updated = self:installUpdates(updates)
-            if #updated > 0 then
-                message:close()
-                table.insert(updated, 1, _("Patch updated:"))
-                UIManager:askForRestart(table.concat(updated, "\n· "))
-            else
-                message:show(_("No patch updates found..."))
-            end
+    local update = function()
+        local updates = self:updates()
+        if not updates then
+            ui:info(_("Can't download patch updates"))
+            return
         end
-    end)
+
+        local installs = self:installs(updates)
+        if installs.empty(false) then
+            ui:info(_("No patch updates found"))
+            return
+        end
+
+        local install = function()
+            installs.apply()
+
+            local texts = {}
+            if not installs.empty(false) then -- some failed
+                table.insert(texts, _("Patches that failed to update:"))
+                table.insert(texts, installs.text(false))
+            end
+            if not installs.empty(true) then -- some succeded
+                table.insert(texts, _("Patches updated:"))
+                table.insert(texts, installs.text(true))
+            end
+            ui:confirm {
+                text = table.concat(texts, "\n"),
+                ok = _("OK"),
+                one_button = true,
+                callback = function()
+                    if not installs.empty(true) then UIManager:askForRestart(_("You need to restart!")) end
+                end,
+            }
+        end
+
+        local text = installs.text(false)
+        ui:confirm {
+            text = _("Patch updates available:\n") .. text,
+            ok = _("Update"),
+            one_button = false,
+            callback = function() ui:process(install, _("Install patches:\n") .. text) end,
+        }
+    end
+
+    ui:process(update, _("Check for patch updates..."))
 end
 
 function ota:menu()
@@ -141,24 +221,24 @@ function ota:menu()
 end
 
 -- menu
+local function patch(menu, order)
+    table.insert(order.more_tools, "----------------------------")
+    table.insert(order.more_tools, "patch_update")
+    menu.menu_items.patch_update = ota:menu()
+end
+
 local FileManagerMenu = require("apps/filemanager/filemanagermenu")
-local FileManagerMenuOrder = require("ui/elements/filemanager_menu_order")
 local orig_FileManagerMenu_setUpdateItemTable = FileManagerMenu.setUpdateItemTable
 
 function FileManagerMenu:setUpdateItemTable()
-    table.insert(FileManagerMenuOrder.more_tools, "----------------------------")
-    table.insert(FileManagerMenuOrder.more_tools, "patch_update")
-    self.menu_items.patch_update = ota:menu()
+    patch(self, require("ui/elements/filemanager_menu_order"))
     orig_FileManagerMenu_setUpdateItemTable(self)
 end
 
 local ReaderMenu = require("apps/reader/modules/readermenu")
-local ReaderMenuOrder = require("ui/elements/reader_menu_order")
 local orig_ReaderMenu_setUpdateItemTable = ReaderMenu.setUpdateItemTable
 
 function ReaderMenu:setUpdateItemTable()
-    table.insert(ReaderMenuOrder.more_tools, "----------------------------")
-    table.insert(ReaderMenuOrder.more_tools, "patch_update")
-    self.menu_items.patch_update = ota:menu()
+    patch(self, require("ui/elements/reader_menu_order"))
     orig_ReaderMenu_setUpdateItemTable(self)
 end
