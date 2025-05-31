@@ -1,9 +1,9 @@
--- NEED at least v2025-04-52 !
+local ok, guard = pcall(require, "patches/guard")
+if ok and guard:korDoesNotMeet("v2025.04-52") then return end
 
 local ReaderFooter = require("apps/reader/modules/readerfooter")
 local util = require("util")
-
-local logger = require("logger")
+-- local logger = require("logger")
 
 local FooterCurrentPresetSetting = "footer_current_preset"
 

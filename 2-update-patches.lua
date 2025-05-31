@@ -1,3 +1,6 @@
+-- local ok, guard = pcall(require, "patches/guard")
+-- if ok and guard:korDoesNotMeet("v2025.04-103") then return end -- will be needed for https://github.com/koreader/koreader/pull/13893
+
 local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
 local InfoMessage = require("ui/widget/infomessage")
@@ -9,10 +12,11 @@ local json = require("json")
 local lfs = require("libs/libkoreader-lfs")
 local ltn12 = require("ltn12")
 local md5 = require("ffi/MD5")
+local userPatch = require("userpatch")
 
 local _ = require("gettext")
-local logger = require("logger")
 local T = require("ffi/util").template
+local logger = require("logger")
 
 local UPDATES = "updates.json" -- dict of md5 of lua files
 local GITHUB_REPO = "sebdelsol/KOReader.patches"
@@ -92,7 +96,7 @@ local ota = {
     online_updates = ONLINE_PATCHES .. UPDATES,
 }
 
-function ota:updates()
+function ota:checkUpdates()
     if downloadFile(self.online_updates, self.local_updates) then
         logger.info("Patch updates list downloaded")
         local updates_file = io.open(self.local_updates, "r")
@@ -103,6 +107,26 @@ function ota:updates()
             updates_file:close()
             return updates
         end
+    end
+end
+
+function ota:cleanBrokenInstalls()
+    local broken = false
+    for name, ok in pairs(userPatch.execution_status) do
+        local file = self.local_patches .. name
+        local old_file = file .. ".old"
+        if isFile(old_file) then
+            if ok then
+                remove(old_file)
+            elseif copy(old_file, file) then -- revert install
+                logger.info("Patch reverted:", file)
+                remove(old_file)
+                broken = true
+            end
+        end
+    end
+    if broken then
+        UIManager:askForRestart(_("Some broken patches have been reverted, you need to restart!"))
     end
 end
 
@@ -117,7 +141,10 @@ function ota:install(name, md5sum)
         local new_file = file .. ".new"
         if downloadFile(url, new_file) then
             logger.info("Patch downloaded:", new_file)
-            install.installed = md5.sumFile(new_file) == md5sum and copy(new_file, file) -- validate & copy
+            local old_file = file .. ".old"
+            install.installed = md5.sumFile(new_file) == md5sum -- validate
+                and copy(file, old_file) -- keep a copy
+                and copy(new_file, file) -- install
             logger.info("Patch " .. (self.installed and "" or "NOT ") .. "installed:", file)
             remove(new_file)
         end
@@ -126,7 +153,7 @@ function ota:install(name, md5sum)
     return install
 end
 
-function ota:installs(updates)
+function ota:getInstalls(updates)
     local installs = {}
     for name, md5sum in pairs(updates) do
         local install = self:install(name, md5sum)
@@ -144,7 +171,7 @@ function ota:installs(updates)
         for _, install in ipairs(installs) do
             if install.installed == installed then table.insert(texts, "\n· " .. install.name) end
         end
-        return table.concat(texts, "")
+        return table.concat(texts)
     end
 
     function installs.empty(installed)
@@ -168,13 +195,13 @@ function ota:update()
     end
 
     local update = function()
-        local updates = self:updates()
+        local updates = self:checkUpdates()
         if not updates then
             ui:info(_("Can't download patch updates"))
             return
         end
 
-        local installs = self:installs(updates)
+        local installs = self:getInstalls(updates)
         if installs.empty(false) then
             ui:info(_("No patch updates found"))
             return
@@ -219,24 +246,39 @@ function ota:menu()
     }
 end
 
+-- clean installs
+local FileManager = require("apps/filemanager/filemanager")
+local ReaderUI = require("apps/reader/readerui")
+
+local orig_ReaderUI_showReader = ReaderUI.showReader
+function ReaderUI:showReader(...)
+    orig_ReaderUI_showReader(self, ...)
+    ota:cleanBrokenInstalls()
+end
+
+local orig_FileManager_showFiles = FileManager.showFiles
+function FileManager:showFiles(...)
+    orig_FileManager_showFiles(self, ...)
+    ota:cleanBrokenInstalls()
+end
+
 -- menu
+local FileManagerMenu = require("apps/filemanager/filemanagermenu")
+local ReaderMenu = require("apps/reader/modules/readermenu")
+
 local function patch(menu, order)
     table.insert(order.more_tools, "----------------------------")
     table.insert(order.more_tools, "patch_update")
     menu.menu_items.patch_update = ota:menu()
 end
 
-local FileManagerMenu = require("apps/filemanager/filemanagermenu")
 local orig_FileManagerMenu_setUpdateItemTable = FileManagerMenu.setUpdateItemTable
-
 function FileManagerMenu:setUpdateItemTable()
     patch(self, require("ui/elements/filemanager_menu_order"))
     orig_FileManagerMenu_setUpdateItemTable(self)
 end
 
-local ReaderMenu = require("apps/reader/modules/readermenu")
 local orig_ReaderMenu_setUpdateItemTable = ReaderMenu.setUpdateItemTable
-
 function ReaderMenu:setUpdateItemTable()
     patch(self, require("ui/elements/reader_menu_order"))
     orig_ReaderMenu_setUpdateItemTable(self)
