@@ -19,7 +19,7 @@ local GITHUB_REPO = "sebdelsol/KOReader.patches"
 local LOCAL_PATCHES = DataStorage:getDataDir() .. "/patches/"
 local ONLINE_PATCHES = "https://github.com/" .. GITHUB_REPO .. "/raw/refs/heads/main/"
 
--- tools
+-- download
 local function httpRequest(options)
     local req_ok, r_val, r_code, _, r_status_str = pcall(http.request, options)
     if req_ok and r_code == 200 then return true end
@@ -78,12 +78,13 @@ function ui:confirm(options)
     UIManager:show(self.shown)
 end
 
--- ota
+-- files
 local function isFile(path) return lfs.attributes(path, "mode") == "file" end
 local function isDir(path) return lfs.attributes(path, "mode") == "directory" end
 local function copy(src, dst) return os.execute('cp -vf "' .. src .. '" "' .. dst .. '"') == 0 end
 local function remove(path) return os.execute('rm -vf "' .. path .. '"') == 0 end
 
+-- ota
 local ota = {
     local_patches = LOCAL_PATCHES,
     local_updates = LOCAL_PATCHES .. UPDATES,
@@ -138,12 +139,12 @@ function ota:installs(updates)
         end
     end
 
-    function installs.text(installed, sep)
+    function installs.text(installed)
         local texts = {}
         for _, install in ipairs(installs) do
-            if install.installed == installed then table.insert(texts, install.name) end
+            if install.installed == installed then table.insert(texts, "\n· " .. install.name) end
         end
-        return table.concat(texts, sep or "\n· ")
+        return table.concat(texts, "")
     end
 
     function installs.empty(installed)
@@ -184,12 +185,10 @@ function ota:update()
 
             local texts = {}
             if not installs.empty(false) then -- some failed
-                table.insert(texts, _("Patches that failed to update:"))
-                table.insert(texts, installs.text(false))
+                table.insert(texts, _("Patches that failed to update:") .. installs.text(false))
             end
             if not installs.empty(true) then -- some succeded
-                table.insert(texts, _("Patches updated:"))
-                table.insert(texts, installs.text(true))
+                table.insert(texts, _("Patches updated:") .. installs.text(true))
             end
             ui:confirm {
                 text = table.concat(texts, "\n"),
@@ -203,10 +202,10 @@ function ota:update()
 
         local text = installs.text(false)
         ui:confirm {
-            text = _("Patch updates available:\n") .. text,
+            text = _("Patch updates available:") .. text,
             ok = _("Update"),
             one_button = false,
-            callback = function() ui:process(install, _("Install patches:\n") .. text) end,
+            callback = function() ui:process(install, _("Install patches:") .. text) end,
         }
     end
 
