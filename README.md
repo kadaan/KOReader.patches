@@ -6,6 +6,8 @@
 Please [check the guide here](https://koreader.rocks/user_guide/#L2-userpatches).
 
 ### [🞂 2-update-patches](2-update-patches.lua)
+This patch requires at least KOReader v2025.04.107.
+
 This patch lets you update all the patches here.
 
 You'll find the update option in <sub><img src="img/appbar.tools.svg" style="width:2%; height:auto;"></sub> **🞂 More tools 🞂 Update sebdelsol/KOReader.patches**
