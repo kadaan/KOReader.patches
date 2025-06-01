@@ -1,12 +1,15 @@
--- local ok, guard = pcall(require, "patches/guard")
--- if ok and guard:korDoesNotMeet("v2025.04-103") then return end -- will be needed for https://github.com/koreader/koreader/pull/13893
+local ok, guard = pcall(require, "patches/guard")
+if ok and guard:korDoesNotMeet("v2025.04-107") then return end
 
+local ButtonDialog = require("ui/widget/buttondialog")
+local CheckButton = require("ui/widget/checkbutton")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
 local InfoMessage = require("ui/widget/infomessage")
 local NetworkManager = require("ui/network/manager")
 local Trapper = require("ui/trapper")
 local UIManager = require("ui/uimanager")
+local Version = require("version")
 local http = require("socket/http")
 local json = require("json")
 local lfs = require("libs/libkoreader-lfs")
@@ -47,6 +50,35 @@ local function downloadFile(url, path)
     logger.err("Failed to open target file for download: ", err or "Unknown error")
 end
 
+-- version
+local cur_kor_version = Version:getNormalizedCurrentVersion() -- cur KOR version
+
+local function doMeetRequirement(path) -- path is supposed to be a patch
+    local count = 0
+    for line in io.lines(path) do
+        count = count + 1
+        if count > 3 then break end -- do not search for too many lines
+        local min_ver = line:match(':korDoesNotMeet%(%"(v.+)%"%)')
+        min_ver = Version:getNormalizedVersion(min_ver)
+        if min_ver and cur_kor_version < min_ver then return false end
+    end
+    return true
+end
+
+-- tools
+local function sortedPairs(tbl)
+    local keys = {}
+    -- stylua: ignore
+    for key in pairs(tbl) do table.insert(keys, key) end
+    table.sort(keys)
+    local i = 0
+    return function()
+        i = i + 1
+        local key = keys[i]
+        if key ~= nil then return key, tbl[key] end
+    end
+end
+
 -- ui
 local ui = {}
 
@@ -79,6 +111,34 @@ function ui:confirm(options)
     params[options.one_button and "cancel_text" or "ok_text"] = options.ok
     params[options.one_button and "cancel_callback" or "ok_callback"] = options.callback
     self.shown = ConfirmBox:new(params)
+    UIManager:show(self.shown)
+end
+
+function ui:confirmCheckList(options)
+    self:close()
+    local button_dialog
+    self.shown = ButtonDialog:new {
+        title = options.title,
+        buttons = {
+            {
+                {
+                    text = _("Cancel"),
+                    callback = function() self.shown:onClose() end,
+                },
+                {
+                    text = options.ok_text,
+                    callback = function()
+                        self.shown:onClose()
+                        options.ok_callback()
+                    end,
+                },
+            },
+        },
+    }
+    for _, check in ipairs(options.checks or {}) do
+        check.parent = self.shown
+        self.shown:addWidget(CheckButton:new(check))
+    end
     UIManager:show(self.shown)
 end
 
@@ -131,21 +191,22 @@ function ota:cleanBrokenInstalls()
 end
 
 function ota:install(name, md5sum)
-    local install = { name = name:sub(1, -5), installed = false }
+    local install = { name = name:sub(1, -5), installed = false, skip = false }
     local file = self.local_patches .. name
 
     function install.isNew() return isFile(file) and md5.sumFile(file) ~= md5sum end
 
     function install.apply()
+        if install.skip then return end
         local url = self.online_patches .. name
         local new_file = file .. ".new"
         if downloadFile(url, new_file) then
             logger.info("Patch downloaded:", new_file)
-            local old_file = file .. ".old"
-            install.installed = md5.sumFile(new_file) == md5sum -- validate
-                and copy(file, old_file) -- keep a copy
-                and copy(new_file, file) -- install
-            logger.info("Patch " .. (self.installed and "" or "NOT ") .. "installed:", file)
+            if md5.sumFile(new_file) == md5sum and doMeetRequirement(new_file) then -- validate
+                local old_file = file .. ".old"
+                install.installed = copy(file, old_file) and copy(new_file, file) -- keep a copy & install
+                logger.info("Patch " .. (self.installed and "" or "NOT ") .. "installed:", file)
+            end
             remove(new_file)
         end
     end
@@ -155,28 +216,43 @@ end
 
 function ota:getInstalls(updates)
     local installs = {}
-    for name, md5sum in pairs(updates) do
+
+    for name, md5sum in sortedPairs(updates) do
         local install = self:install(name, md5sum)
         if install.isNew() then table.insert(installs, install) end
     end
 
     function installs.apply()
         for _, install in ipairs(installs) do
-            install.apply()
+            if not install.skip then install.apply() end
         end
+    end
+
+    function installs.checks() -- checkboxes
+        local checks = {}
+        for _, install in ipairs(installs) do
+            table.insert(checks, {
+                text = install.name,
+                checked = not install.skip,
+                callback = function() install.skip = not install.skip end,
+            })
+        end
+        return checks
     end
 
     function installs.text(installed)
         local texts = {}
         for _, install in ipairs(installs) do
-            if install.installed == installed then table.insert(texts, "\n· " .. install.name) end
+            if not install.skip and install.installed == installed then
+                table.insert(texts, "\n · " .. install.name)
+            end
         end
         return table.concat(texts)
     end
 
     function installs.empty(installed)
         for _, install in ipairs(installs) do
-            if install.installed == installed then return false end
+            if not install.skip and install.installed == installed then return false end
         end
         return true
     end
@@ -227,12 +303,15 @@ function ota:update()
             }
         end
 
-        local text = installs.text(false)
-        ui:confirm {
-            text = _("Patch updates available:") .. text,
-            ok = _("Update"),
-            one_button = false,
-            callback = function() ui:process(install, _("Install patches:") .. text) end,
+        ui:confirmCheckList {
+            title = _("Patch updates available:"),
+            checks = installs.checks(), -- so the user might skip some updates
+            ok_text = _("Update"),
+            ok_callback = function()
+                if not installs.empty(false) then
+                    ui:process(install, _("Update patches:") .. installs.text(false))
+                end
+            end,
         }
     end
 

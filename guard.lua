@@ -29,7 +29,7 @@ function guard:korDoesNotMeet(min_version)
     logger.info('"' .. patch_name .. '": meet KOReader version requirement')
 end
 
--- mark too old patches
+-- mark patches that don't meet Koreader version requirement
 function guard:markPatches()
     for _, patch_name in ipairs(self.dont_meet_version) do
         userPatch.execution_status[patch_name] = false
