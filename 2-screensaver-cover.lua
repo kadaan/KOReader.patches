@@ -42,14 +42,20 @@ end
 if G_reader_settings:hasNot("screensaver_overlap_message") then
     G_reader_settings:saveSetting("screensaver_overlap_message", true)
 end
-if G_reader_settings:hasNot("screensaver_refresh") then G_reader_settings:saveSetting("screensaver_refresh", true) end
+if G_reader_settings:hasNot("screensaver_refresh") then
+    G_reader_settings:saveSetting("screensaver_refresh", true)
+end
+
+local userpatch = require("userpatch")
+local addOverlayMessage = userpatch.getUpValue(Screensaver.show, "addOverlayMessage")
 
 Screensaver.show = function(self)
     -- Notify Device methods that we're in screen saver mode, so they know whether to suspend or resume on Power events.
     Device.screen_saver_mode = true
 
     -- Check if we requested a lock gesture
-    local with_gesture_lock = Device:isTouchDevice() and G_reader_settings:readSetting("screensaver_delay") == "gesture"
+    local with_gesture_lock = Device:isTouchDevice()
+        and G_reader_settings:readSetting("screensaver_delay") == "gesture"
 
     -- in as-is mode with no message, no overlay and no lock, we've got nothing to show :)
     if
@@ -165,7 +171,8 @@ Screensaver.show = function(self)
             }
             is_message_top = message_pos == "top"
             container = is_message_top and TopContainer or BottomContainer
-            overlap_message = not is_cover_or_image or G_reader_settings:readSetting("screensaver_overlap_message")
+            overlap_message = not is_cover_or_image
+                or G_reader_settings:readSetting("screensaver_overlap_message")
             message_widget = container:new {
                 dimen = Geom:new {
                     w = screen_w,
@@ -207,8 +214,11 @@ Screensaver.show = function(self)
                     widget_settings.image = RenderImage:renderImageFile(self.image_file, false, nil, nil)
                 end
                 if not widget_settings.image then
-                    widget_settings.image =
-                        RenderImage:renderCheckerboard(Screen:getWidth(), Screen:getHeight(), Screen.bb:getType())
+                    widget_settings.image = RenderImage:renderCheckerboard(
+                        Screen:getWidth(),
+                        Screen:getHeight(),
+                        Screen.bb:getType()
+                    )
                 end
                 widget_settings.image_disposable = true
             else
@@ -223,7 +233,8 @@ Screensaver.show = function(self)
                 (widget_settings.image:getWidth() < widget_settings.image:getHeight())
                 ~= (widget_settings.width < widget_settings.height)
             then
-                angle = angle + (G_reader_settings:isTrue("imageviewer_rotation_landscape_invert") and -90 or 90)
+                angle = angle
+                    + (G_reader_settings:isTrue("imageviewer_rotation_landscape_invert") and -90 or 90)
             end
             widget_settings.rotation_angle = angle
         end
@@ -287,7 +298,9 @@ Screensaver.show = function(self)
         if G_reader_settings:readSetting("screensaver_close_widgets_when_no_fill") then -- !!!!!!!!!
             -- clear highlight
             local readerui = ReaderUI.instance
-            if readerui and readerui.highlight then readerui.highlight:clear(readerui.highlight:getClearId()) end
+            if readerui and readerui.highlight then
+                readerui.highlight:clear(readerui.highlight:getClearId())
+            end
 
             local added = {}
             local widgets = {}
@@ -358,7 +371,9 @@ local function add_options_in(menu)
     table.insert(items, {
         text = _("Close widgets before showing the screensaver"),
         help_text = _("This option will only become available, if you have selected 'No fill'."),
-        enabled_func = function() return G_reader_settings:readSetting("screensaver_img_background") == "none" end,
+        enabled_func = function()
+            return G_reader_settings:readSetting("screensaver_img_background") == "none"
+        end,
         checked_func = function() return G_reader_settings:isTrue("screensaver_close_widgets_when_no_fill") end,
         callback = function(touchmenu_instance)
             G_reader_settings:flipNilOrFalse("screensaver_close_widgets_when_no_fill")
@@ -367,10 +382,13 @@ local function add_options_in(menu)
     })
     table.insert(items, {
         text = _("Refresh before showing the screensaver"),
-        help_text = _("This option will only become available, if you have selected a cover or a random image."),
+        help_text = _(
+            "This option will only become available, if you have selected a cover or a random image."
+        ),
         enabled_func = function()
             local screensaver_type = G_reader_settings:readSetting("screensaver_type")
-            return Device:hasEinkScreen() and (screensaver_type == "cover" or screensaver_type == "random_image")
+            return Device:hasEinkScreen()
+                and (screensaver_type == "cover" or screensaver_type == "random_image")
         end,
         checked_func = function() return G_reader_settings:isTrue("screensaver_refresh") end,
         callback = function(touchmenu_instance)
@@ -399,7 +417,9 @@ local function add_options_in(menu)
     })
     table.insert(items, {
         text = _("Center image"),
-        help_text = _("This option will only become available, if you have selected 'Message do not overlap image'."),
+        help_text = _(
+            "This option will only become available, if you have selected 'Message do not overlap image'."
+        ),
         enabled_func = function() return G_reader_settings:nilOrFalse("screensaver_overlap_message") end,
         checked_func = function() return G_reader_settings:isTrue("screensaver_center_image") end,
         callback = function(touchmenu_instance)
