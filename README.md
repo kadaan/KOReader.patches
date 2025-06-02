@@ -5,6 +5,10 @@
 
 Please [check the guide here](https://koreader.rocks/user_guide/#L2-userpatches).
 
+### [🞂 guard ](guard.lua)
+
+This tool is used by patches that require a minimum KOReader version to work, and it prevents them from crashing if the requirement isn't met.
+
 ### [🞂 2-update-patches](2-update-patches.lua)
 This patch _requires_ at least KOReader v2025.04.107.
 
