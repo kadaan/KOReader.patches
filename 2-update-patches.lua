@@ -190,10 +190,10 @@ function ota:cleanBrokenInstalls()
 end
 
 function ota:install(name, md5sum)
-    local install = { name = name:sub(1, -5), installed = false, skip = false }
     local file = self.local_patches .. name
+    local install = { name = name:sub(1, -5), installed = false, skip = false, exists = isFile(file) }
 
-    function install.isNew() return isFile(file) and md5.sumFile(file) ~= md5sum end
+    function install.isNew() return not install.exists or (install.exists and md5.sumFile(file) ~= md5sum) end
 
     function install.apply()
         if install.skip then return end
@@ -202,9 +202,12 @@ function ota:install(name, md5sum)
         if downloadFile(url, new_file) then
             logger.info("Patch downloaded:", new_file)
             if md5.sumFile(new_file) == md5sum and doMeetRequirement(new_file) then -- validate
-                local old_file = file .. ".old"
-                install.installed = copy(file, old_file) and copy(new_file, file) -- keep a copy & install
-                logger.info("Patch " .. (self.installed and "" or "NOT ") .. "installed:", file)
+                if install.exists then
+                    local old_file = file .. ".old"
+                    copy(file, old_file) -- keep a copy
+                end
+                install.installed = copy(new_file, file) -- install
+                logger.info("Patch " .. (install.installed and "" or "NOT ") .. "installed:", file)
             end
             remove(new_file)
         end
@@ -230,6 +233,7 @@ function ota:getInstalls(updates)
     function installs.checks() -- checkboxes
         local checks = {}
         for _, install in ipairs(installs) do
+            install.skip = not install.exists -- skip new install by default
             table.insert(checks, {
                 text = install.name,
                 checked = not install.skip,
