@@ -6,7 +6,7 @@ local CheckButton = require("ui/widget/checkbutton")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
 local InfoMessage = require("ui/widget/infomessage")
-local NetworkManager = require("ui/network/manager")
+local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local Version = require("version")
 local http = require("socket/http")
@@ -263,17 +263,8 @@ function ota:getInstalls(updates)
     return installs
 end
 
-function ota:update()
-    if not isDir(self.local_patches) then
-        ui:info(_("You have no patches."))
-        return
-    end
-    if not NetworkManager:isOnline() then
-        ui:info(_("Please turn on wifi and try again."))
-        return
-    end
-
-    local update = function()
+function ota:_update()
+    local function _update()
         local updates = self:checkUpdates()
         if not updates then
             ui:info(_("Can't download patch updates"))
@@ -286,7 +277,7 @@ function ota:update()
             return
         end
 
-        local install = function()
+        local function _install()
             installs.apply()
 
             local texts = {}
@@ -312,13 +303,32 @@ function ota:update()
             ok_text = _("Update"),
             ok_callback = function()
                 if not installs.empty(false) then
-                    ui:process(install, _("Update patches:") .. installs.text(false))
+                    ui:process(_install, _("Update patches:") .. installs.text(false))
                 end
             end,
         }
     end
 
-    ui:process(update, _("Check for patch updates..."))
+    ui:process(_update, _("Check for patch updates..."))
+end
+
+function ota:update()
+    if not isDir(self.local_patches) then
+        ui:info(_("You have no patches."))
+        return
+    end
+
+    if NetworkMgr:isOnline() then
+        self:_update()
+    else
+        ui:confirm {
+            text = "Would you like to turn Wifi on ?",
+            ok = _("Wifi on"),
+            callback = function()
+                NetworkMgr:turnOnWifiAndWaitForConnection(function() self:_update() end)
+            end,
+        }
+    end
 end
 
 function ota:menu()
