@@ -123,7 +123,9 @@ local config = load_and_update_config()
 -- Title bar update
 local genItemText = {
     custom_text = function() return config.custom_text end,
-    clock = function() return datetime.secondsToHour(os.time(), G_reader_settings:isTrue("twelve_hour_clock")) end,
+    clock = function()
+        return datetime.secondsToHour(os.time(), G_reader_settings:isTrue("twelve_hour_clock"))
+    end,
     wifi = function() return NetworkMgr:isWifiOn() and "" or (config.wifi_show_disabled and "") end,
     frontlight_warmth = function()
         if Device:hasNaturalLight() then
@@ -357,10 +359,15 @@ function FileManagerMenu:_set_title_bar_separator_space(touchmenu_instance)
 end
 
 function FileManagerMenu:_set_title_bar_custom_separator_text(touchmenu_instance)
-    self:_title_bar_input_text(touchmenu_instance, _("Enter a custom separator"), separators.custom, function(text)
-        config.separator_custom = text
-        separators.custom = text
-    end)
+    self:_title_bar_input_text(
+        touchmenu_instance,
+        _("Enter a custom separator"),
+        separators.custom,
+        function(text)
+            config.separator_custom = text
+            separators.custom = text
+        end
+    )
 end
 
 local separator_menu_texts = {
@@ -370,7 +377,9 @@ local separator_menu_texts = {
     em_dash = _("Em dash"),
     bar = _("Vertical bar"),
     none = _("No separator"),
-    custom = function(concise) return concise and _("Custom separator") or _("Custom separator (long-press to edit)") end,
+    custom = function(concise)
+        return concise and _("Custom separator") or _("Custom separator (long-press to edit)")
+    end,
 }
 
 local separators_menu_help_text_funcs = {
@@ -442,7 +451,8 @@ local item_menu_texts = {
     awake_time = _("Time spent awake"),
     suspend_time = _("Time in suspend"),
     custom_text = function(concise)
-        return concise and _("Custom text") or T(_("Custom text (long-press to edit): '%1'"), config.custom_text)
+        return concise and _("Custom text")
+            or T(_("Custom text (long-press to edit): '%1'"), config.custom_text)
     end,
 }
 
@@ -520,7 +530,9 @@ setting_menu_texts = { -- already declared above
     wifi_show_disabled = _("Show wifi status even when disabled"),
     frontlight_show_off = _("Show frontlight when off"),
     bold = _("Bold font"),
-    separator = function() return T(_("Item separator: %1"), get_separator_menu_texts(config.separator, true)) end,
+    separator = function()
+        return T(_("Item separator: %1"), get_separator_menu_texts(config.separator, true))
+    end,
     custom_text = function() return T(_("Custom text: '%1'"), config.custom_text) end,
     separator_space = function(concise)
         return concise and _("Number of spaces around separator")
