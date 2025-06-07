@@ -322,8 +322,8 @@ function ota:update()
         self:_update()
     else
         ui:confirm {
-            text = "Would you like to turn Wifi on ?",
-            ok = _("Wifi on"),
+            text = "Would you like to turn Wi-fi on ?",
+            ok = _("Wi-fi on"),
             callback = function()
                 NetworkMgr:turnOnWifiAndWaitForConnection(function() self:_update() end)
             end,

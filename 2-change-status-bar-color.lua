@@ -18,7 +18,7 @@ local T = require("ffi/util").template
 local function serializeColor(color) return color.a end
 local function deserializeColor(value) return Blitbuffer.Color8(value) end
 local function blackPctOfColor(color) return Math.round((0xFF - color.a) * 100 / 0xFF) end
-local function colorFromBlackPct(percent) return Blitbuffer.gray(Math.round(percent / 100)) end
+local function colorFromBlackPct(percent) return Blitbuffer.gray(percent / 100) end
 
 -- Settings
 local Settings = {}
@@ -122,7 +122,9 @@ function ReaderFooter:_statusBarColorMenu(read)
         callback = function(touchmenu_instance)
             local spin_widget = SpinWidget:new {
                 title_text = read and _("Read color % black") or _("Unread color % black"),
-                default_value = blackPctOfColor(Settings:getDefault(self.settings.progress_style_thin, color_attrib)),
+                default_value = blackPctOfColor(
+                    Settings:getDefault(self.settings.progress_style_thin, color_attrib)
+                ),
                 value = blackPctOfColor(self.progress_bar[color_attrib]),
                 value_min = 0,
                 value_step = 1,
