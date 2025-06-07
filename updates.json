@@ -1,7 +1,7 @@
 {
   "2-reference-page-count.lua": "9196448d779659f15be376e34f80701c",
-  "2-update-patches.lua": "894f41064a4ca024493db6ccc4139f41",
-  "2-change-status-bar-color.lua": "3b5b9f59120a6e4acd0ac23a97cdad22",
+  "2-update-patches.lua": "54f2669cbdd5ec336dbd7d100ac5e69a",
+  "2-change-status-bar-color.lua": "b47915966544f02a8986a946528160bb",
   "guard.lua": "35879a5f4e914b58f56862efa47e6681",
   "2-filemanager-titlebar.lua": "5504d0d8e71389d931dd21932829d52a",
   "2-statusbar-thin-chapter.lua": "2d130d61e14b0dba0bc247269e379101",
