@@ -5,6 +5,12 @@
 
 Please [check the guide here](https://koreader.rocks/user_guide/#L2-userpatches).
 
+### [🞂 2-ui-font](2-ui-font.lua)
+
+This patch allows you to change the UI font.
+
+You can find this option under <sub><img src="img/appbar.settings.svg" style="width:2%; height:auto;"></sub> **🞂 UI font**
+
 ### [🞂 guard ](guard.lua)
 
 This tool is used by patches that require a minimum KOReader version to work, and it prevents them from crashing if the requirement isn't met.
