@@ -5,6 +5,8 @@ getmetatable("").__index.rep = function(self, nb)
     return self
 end
 
+-- Name it "2--ui-font.lua": it NEEDS to be the 1st user patch to be executed
+
 local Font = require("ui/font")
 local _ = require("gettext")
 local T = require("ffi/util").template
