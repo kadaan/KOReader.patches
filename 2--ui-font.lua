@@ -113,13 +113,3 @@ function ReaderMenu:setUpdateItemTable()
     patch(self, require("ui/elements/reader_menu_order"))
     orig_ReaderMenu_setUpdateItemTable(self)
 end
-
--- Has to be done AFTER the ui font manipulations
--- More items in the menu
-local Menu = require("ui/widget/menu")
-local TouchMenu = require("ui/widget/touchmenu")
-
-local MENU_ITEMS_PLUS_PERCENT = 0.25
-
-TouchMenu.max_per_page_default = math.floor(TouchMenu.max_per_page_default * (1 + MENU_ITEMS_PLUS_PERCENT))
-Menu.items_per_page_default = math.floor(Menu.items_per_page_default * (1 + MENU_ITEMS_PLUS_PERCENT))

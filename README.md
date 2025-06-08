@@ -13,10 +13,9 @@ You can find this option under <sub><img src="img/appbar.settings.svg" style="wi
 
 <img src="img/UIfont.png" style="width:15%; height:auto;">
 
+### [🞂 2-menu-size](2-2-menu-size.lua)
 
-### [🞂 guard ](guard.lua)
-
-This tool is used by patches that require a minimum KOReader version to work, and it prevents them from crashing if the requirement isn't met.
+This patch adapts the menu size to the actual DPI.
 
 ### [🞂 2-update-patches](2-update-patches.lua)
 This patch _requires_ at least KOReader v2025.04.107.
@@ -28,6 +27,10 @@ You'll find the update option in <sub><img src="img/appbar.tools.svg" style="wid
 <img src="img/update.png" style="width:25%; height:auto;">
 
 Note that the patches that are not checked or not installed won't be updated.
+
+### [🞂 guard ](guard.lua)
+
+This tool is used by patches that require a minimum KOReader version to work, and it prevents them from crashing if the requirement isn't met.
 
 ### [🞂 2-statusbar-thin-chapter](2-statusbar-thin-chapter.lua)
 This patch add chapter markers in the thin status bar.
