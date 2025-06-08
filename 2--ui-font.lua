@@ -15,10 +15,12 @@ local UIManager = require("ui/uimanager")
 local cre = require("document/credocument"):engineInit()
 local logger = require("logger")
 
--- UI font
-local SETTING = "ui_font_name"
-local DEFAULT = "Noto Sans"
+-- setting
+local setting = { name = "ui_font_name", default = "Noto Sans" }
+function setting:get() return G_reader_settings:readSetting(self.name, self.default) end
+function setting:set(value) G_reader_settings:saveSetting(self.name, value) end
 
+-- UI font
 local function get_bold_path(path_regular)
     local path_bold, nb_repl = path_regular:gsub("%-Regular%.", "-Bold.", 1)
     return nb_repl > 0 and path_bold
@@ -52,31 +54,31 @@ function UIFont:init()
         self.to_be_replaced[k] = repl[v]
     end
 
-    G_reader_settings:readSetting(SETTING, DEFAULT)
     self:setFont()
 end
 
 function UIFont:setFont(name)
-    if name ~= G_reader_settings:readSetting(SETTING) then
-        name = name or G_reader_settings:readSetting(SETTING)
+    local current_name = setting:get()
+    if name ~= current_name then
+        name = name or current_name
         if not self.fonts[name] then name = DEFAULT end
         for k, v in pairs(self.to_be_replaced) do
             Font.fontmap[k] = self.fonts[name][v]
         end
-        G_reader_settings:saveSetting(SETTING, name)
+        setting:set(name)
         return true
     end
 end
 
 function UIFont:menu()
     return {
-        text_func = function() return T(_("UI font: %1"), G_reader_settings:readSetting(SETTING)) end,
+        text_func = function() return T(_("UI font: %1"), setting:get()) end,
         sub_item_table_func = function()
             local items = {}
             for i, name in ipairs(self.font_list) do
                 table.insert(items, {
                     text = name,
-                    enabled_func = function() return name ~= G_reader_settings:readSetting(SETTING) end,
+                    enabled_func = function() return name ~= setting:get() end,
                     font_func = function(size) return Font:getFace(self.fonts[name].regular, size) end,
                     callback = function()
                         if self:setFont(name) then
