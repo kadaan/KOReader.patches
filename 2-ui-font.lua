@@ -113,3 +113,13 @@ local MENU_ITEMS_PLUS_PERCENT = 0.25
 
 TouchMenu.max_per_page_default = math.floor(TouchMenu.max_per_page_default * (1 + MENU_ITEMS_PLUS_PERCENT))
 Menu.items_per_page_default = math.floor(Menu.items_per_page_default * (1 + MENU_ITEMS_PLUS_PERCENT))
+
+-- temporary fix for https://github.com/koreader/koreader/issues/13925
+local orig_string_rep = string.rep
+local rep = function(self, nb)
+    if nb < math.huge then return orig_string_rep(self, nb) end
+    return ""
+end
+
+local str = ""
+getmetatable(str).__index.rep = rep
