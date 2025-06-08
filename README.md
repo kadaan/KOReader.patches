@@ -11,7 +11,7 @@ This patch allows you to change the UI font.
 
 You can find this option under <sub><img src="img/appbar.settings.svg" style="width:2%; height:auto;"></sub> **🞂 UI font**
 
-<img src="img/UIfont.png" style="width:20%; height:auto;">
+<img src="img/UIfont.png" style="width:25%; height:auto;">
 
 ### [🞂 2-menu-size](2-menu-size.lua)
 
@@ -43,7 +43,7 @@ It only shows TOC entries at level 1 to avoid cluttering the progress bar.
 
 It's configurable in the menu, just like the thick progress bar in <sub><img src="img/appbar.settings.svg" style="width:2%; height:auto;"></sub> **🞂 Status bar 🞂 Progress bar**
 
-<img src="img/thin_status_bar.png" style="width:50%; height:auto;">
+<img src="img/thin_status_bar.png" style="width:60%; height:auto;">
 
 ### [🞂 2-statusbar-cycle-presets](2-statusbar-cycle-presets.lua)
 This patch _requires_ at least KOReader v2025.04.52.
@@ -59,7 +59,7 @@ This patch enables you to change your status bar's `read` and `unread` colors.
 
 You'll find it in <sub><img src="img/appbar.settings.svg" style="width:2%; height:auto;"></sub> **🞂 Status bar 🞂 Progress bar 🞂 Thickness, height & colors**
 
-<img src="img/status_bar_color.png" style="width:20%; height:auto;">
+<img src="img/status_bar_color.png" style="width:25%; height:auto;">
 
 ### [🞂 2-filemanager-titlebar](2-filemanager-titlebar.lua) 
 This patch shows information in the file manager title bar.
@@ -84,7 +84,7 @@ This patch adds two new chapter options in the screensaver info message:
 
 Go to <sub><img src="img/appbar.settings.svg" style="width:2%; height:auto;"></sub> **🞂 Screen 🞂 Sleep screen 🞂 Sleep screen message 🞂 Edit Sleep screen message**
 
-<img src="img/chapter.png" style="width:20%; height:auto;">
+<img src="img/chapter.png" style="width:25%; height:auto;">
 
 ### [🞂 2-screensaver-cover](2-screensaver-cover.lua)
 This patch adds 4 new options at the end of <sub><img src="img/appbar.settings.svg" style="width:2%; height:auto;"></sub> **🞂 Screen 🞂 Sleep screen**:
@@ -95,14 +95,14 @@ This patch adds 4 new options at the end of <sub><img src="img/appbar.settings.s
 
 By default, it does not change the sleep screen behavior.
 
-<img src="img/cover.png" style="width:20%; height:auto;">
+<img src="img/cover.png" style="width:25%; height:auto;">
 
 ### [🞂 2-statusbar-better-compact](2-statusbar-better-compact.lua) 
 This patch enhances compact mode in the status bar:
 - Uses improved frontlight icons and adds the battery percentage
 - Provides a better separator for title, chapter, and author when compact mode has no separator
 
-<img src="img/compact.png" style="width:50%; height:auto;">
+<img src="img/compact.png" style="width:60%; height:auto;">
 
 ### [🞂 2-disable-top-menu-zones](2-disable-top-menu-zones.lua) 
 This patch removes the top menu swipe and tap zones, so you'll be sure to open it in the last tab you were on.
