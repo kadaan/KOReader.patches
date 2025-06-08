@@ -2,8 +2,8 @@
 
 -- temporary fix for https://github.com/koreader/koreader/issues/13925
 local orig_string_rep = string.rep
-getmetatable("").__index.rep = function(self, nb)
-    if nb < math.huge then return orig_string_rep(self, nb) end
+getmetatable("").__index.rep = function(self, n)
+    if n < math.huge then return orig_string_rep(self, n) end
     return self
 end
 
@@ -22,8 +22,8 @@ function setting:set(value) G_reader_settings:saveSetting(self.name, value) end
 
 -- UI font
 local function get_bold_path(path_regular)
-    local path_bold, nb_repl = path_regular:gsub("%-Regular%.", "-Bold.", 1)
-    return nb_repl > 0 and path_bold
+    local path_bold, n_repl = path_regular:gsub("%-Regular%.", "-Bold.", 1)
+    return n_repl > 0 and path_bold
 end
 
 local UIFont = {}
