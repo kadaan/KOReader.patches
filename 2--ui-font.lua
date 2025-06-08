@@ -1,11 +1,11 @@
+-- NAME IT "2--ui-font.lua": it NEEDS to be the 1st user patch to be executed
+
 -- temporary fix for https://github.com/koreader/koreader/issues/13925
 local orig_string_rep = string.rep
 getmetatable("").__index.rep = function(self, nb)
     if nb < math.huge then return orig_string_rep(self, nb) end
     return self
 end
-
--- Name it "2--ui-font.lua": it NEEDS to be the 1st user patch to be executed
 
 local Font = require("ui/font")
 local _ = require("gettext")
@@ -59,6 +59,7 @@ end
 function UIFont:setFont(name)
     if name ~= G_reader_settings:readSetting(SETTING) then
         name = name or G_reader_settings:readSetting(SETTING)
+        if not self.fonts[name] then name = DEFAULT end
         for k, v in pairs(self.to_be_replaced) do
             Font.fontmap[k] = self.fonts[name][v]
         end
