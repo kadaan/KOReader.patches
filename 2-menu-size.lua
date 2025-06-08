@@ -2,7 +2,6 @@ local Device = require("device")
 local Screen = Device.screen
 local Menu = require("ui/widget/menu")
 local TouchMenu = require("ui/widget/touchmenu")
-local logger = require("logger")
 
 local dpi = Screen:getDPI()
 Screen:clearDPI()

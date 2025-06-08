@@ -13,7 +13,7 @@ You can find this option under <sub><img src="img/appbar.settings.svg" style="wi
 
 <img src="img/UIfont.png" style="width:15%; height:auto;">
 
-### [🞂 2-menu-size](2-2-menu-size.lua)
+### [🞂 2-menu-size](2-menu-size.lua)
 
 This patch adapts the menu size to the actual DPI.
 
