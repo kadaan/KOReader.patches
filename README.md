@@ -11,7 +11,7 @@ This patch allows you to change the UI font.
 
 You can find this option under <sub><img src="img/appbar.settings.svg" style="width:2%; height:auto;"></sub> **🞂 UI font**
 
-<img src="img/UIfont.png" style="width:15%; height:auto;">
+<img src="img/UIfont.png" style="width:20%; height:auto;">
 
 ### [🞂 2-menu-size](2-menu-size.lua)
 
@@ -59,7 +59,7 @@ This patch enables you to change your status bar's `read` and `unread` colors.
 
 You'll find it in <sub><img src="img/appbar.settings.svg" style="width:2%; height:auto;"></sub> **🞂 Status bar 🞂 Progress bar 🞂 Thickness, height & colors**
 
-<img src="img/status_bar_color.png" style="width:15%; height:auto;">
+<img src="img/status_bar_color.png" style="width:20%; height:auto;">
 
 ### [🞂 2-filemanager-titlebar](2-filemanager-titlebar.lua) 
 This patch shows information in the file manager title bar.
@@ -84,7 +84,7 @@ This patch adds two new chapter options in the screensaver info message:
 
 Go to <sub><img src="img/appbar.settings.svg" style="width:2%; height:auto;"></sub> **🞂 Screen 🞂 Sleep screen 🞂 Sleep screen message 🞂 Edit Sleep screen message**
 
-<img src="img/chapter.png" style="width:15%; height:auto;">
+<img src="img/chapter.png" style="width:20%; height:auto;">
 
 ### [🞂 2-screensaver-cover](2-screensaver-cover.lua)
 This patch adds 4 new options at the end of <sub><img src="img/appbar.settings.svg" style="width:2%; height:auto;"></sub> **🞂 Screen 🞂 Sleep screen**:
@@ -95,7 +95,7 @@ This patch adds 4 new options at the end of <sub><img src="img/appbar.settings.s
 
 By default, it does not change the sleep screen behavior.
 
-<img src="img/cover.png" style="width:15%; height:auto;">
+<img src="img/cover.png" style="width:20%; height:auto;">
 
 ### [🞂 2-statusbar-better-compact](2-statusbar-better-compact.lua) 
 This patch enhances compact mode in the status bar:
