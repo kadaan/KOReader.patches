@@ -11,6 +11,7 @@ local Device = require("device")
 local FileManager = require("apps/filemanager/filemanager")
 local FileManagerMenu = require("apps/filemanager/filemanagermenu")
 local FileManagerMenuOrder = require("ui/elements/filemanager_menu_order")
+local Font = require("ui/font")
 local InputDialog = require("ui/widget/inputdialog")
 local NetworkMgr = require("ui/network/manager")
 local SortWidget = require("ui/widget/sortwidget")
@@ -301,6 +302,11 @@ FileManager.onTimeFormatChanged = FileManager.updateTitleBarTitle
 FileManager.onFrontlightStateChanged = FileManager.updateTitleBarTitle
 
 function FileManager:onPathChanged(path)
+    self.title_bar.title_face_fullscreen = Font:getFace("smalltfont")
+    self.title_bar.title_face_not_fullscreen = Font:getFace("x_smalltfont")
+    self.title_bar.subtitle_face = Font:getFace("xx_smallinfofont")
+    self.title_bar.info_text_face = Font:getFace("x_smallinfofont")
+
     -- logger.info("FileManager:onPathChanged CALLED")
     if not self._title_bar_bottom_v_padding_saved then
         self._title_bar_bottom_v_padding_saved = self.title_bar.bottom_v_padding
