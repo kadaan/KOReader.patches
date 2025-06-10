@@ -17,9 +17,10 @@ end
 for _, item in ipairs { "battery" } do
     local orig = footerTextGeneratorMap[item]
     footerTextGeneratorMap[item] = function(footer, ...)
+        local item_prefix_save = footer.settings.item_prefix
         if footer.settings.item_prefix == "compact_items" then footer.settings.item_prefix = "icons" end
         local text = orig(footer, ...)
-        footer.settings.item_prefix = "compact_items" -- restore
+        footer.settings.item_prefix = item_prefix_save -- restore
         return text
     end
 end
