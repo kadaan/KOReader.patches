@@ -1,15 +1,15 @@
 {
+  "2-screensaver-chapter.lua": "e586e0f5d22078e17b5461bb5c46c6f7",
+  "2-change-status-bar-color.lua": "b47915966544f02a8986a946528160bb",
+  "2--ui-font.lua": "681451855d0abf1353a145389672efd0",
+  "2-statusbar-better-compact.lua": "f6ac7c094404d6511132b2ee3e523a0a",
+  "guard.lua": "35879a5f4e914b58f56862efa47e6681",
+  "2-disable-top-menu-zones.lua": "f0851a9b44edd480c63815a1b9807410",
+  "2-statusbar-thin-chapter.lua": "2d130d61e14b0dba0bc247269e379101",
+  "2-screensaver-cover.lua": "52eed93ff47edcb32185717cbc21ea8b",
   "2-menu-size.lua": "ba32bab9d1ef707b5c5da95cfb28f553",
+  "2-filemanager-titlebar.lua": "1098aa5e5116f83d0483c43e90685cc4",
   "2-reference-page-count.lua": "9196448d779659f15be376e34f80701c",
   "2-update-patches.lua": "54f2669cbdd5ec336dbd7d100ac5e69a",
-  "2-change-status-bar-color.lua": "b47915966544f02a8986a946528160bb",
-  "guard.lua": "35879a5f4e914b58f56862efa47e6681",
-  "2-filemanager-titlebar.lua": "1098aa5e5116f83d0483c43e90685cc4",
-  "2--ui-font.lua": "681451855d0abf1353a145389672efd0",
-  "2-statusbar-thin-chapter.lua": "2d130d61e14b0dba0bc247269e379101",
-  "2-screensaver-chapter.lua": "e586e0f5d22078e17b5461bb5c46c6f7",
-  "2-screensaver-cover.lua": "52eed93ff47edcb32185717cbc21ea8b",
-  "2-statusbar-better-compact.lua": "b9292711849f6f77c022fd5627af6d7b",
-  "2-statusbar-cycle-presets.lua": "695cc9d61a080a943d3b092b8398d5ba",
-  "2-disable-top-menu-zones.lua": "f0851a9b44edd480c63815a1b9807410"
+  "2-statusbar-cycle-presets.lua": "695cc9d61a080a943d3b092b8398d5ba"
 }
