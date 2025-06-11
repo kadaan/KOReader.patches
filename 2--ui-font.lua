@@ -1,10 +1,13 @@
 -- NAME IT "2--ui-font.lua": it NEEDS to be the 1st user patch to be executed
 
--- temporary fix for https://github.com/koreader/koreader/issues/13925
-local orig_string_rep = string.rep
-getmetatable("").__index.rep = function(self, n)
-    if n < math.huge then return orig_string_rep(self, n) end
-    return self
+-- fix for https://github.com/koreader/koreader/issues/13925 if version <=v2025.04-115
+local Version = require("version")
+if Version:getNormalizedCurrentVersion() < Version:getNormalizedVersion("v2025.04-115") then
+    local orig_string_rep = string.rep
+    getmetatable("").__index.rep = function(self, n)
+        if n < math.huge then return orig_string_rep(self, n) end
+        return self
+    end
 end
 
 local Font = require("ui/font")
@@ -21,12 +24,12 @@ function setting:get() return G_reader_settings:readSetting(self.name, self.defa
 function setting:set(value) G_reader_settings:saveSetting(self.name, value) end
 
 -- UI font
+local UIFont = {}
+
 local function get_bold_path(path_regular)
     local path_bold, n_repl = path_regular:gsub("%-Regular%.", "-Bold.", 1)
     return n_repl > 0 and path_bold
 end
-
-local UIFont = {}
 
 function UIFont:init()
     local path_set = {}
