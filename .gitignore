@@ -8,4 +8,5 @@
 !*.yml
 !LICENSE
 !img/
+!.git*
 settings.json
