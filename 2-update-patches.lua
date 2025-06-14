@@ -139,8 +139,11 @@ function ui:confirmCheckList(options)
             },
         },
     }
-    self.shown:addWidget(LineWidget:new {
-        dimen = Geom:new { w = self.shown.width, h = Size.line.medium },
+    self.shown:addWidget(LineWidget:new { --
+        dimen = Geom:new {
+            w = self.shown.width - 2 * (Size.border.window + Size.padding.button),
+            h = Size.line.medium,
+        },
         background = Blitbuffer.COLOR_GRAY,
     })
     self.shown:addWidget(VerticalSpan:new { width = Size.padding.default })
