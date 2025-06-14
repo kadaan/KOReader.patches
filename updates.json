@@ -1,7 +1,7 @@
 {
   "2-screensaver-chapter.lua": "e586e0f5d22078e17b5461bb5c46c6f7",
   "2-change-status-bar-color.lua": "b47915966544f02a8986a946528160bb",
-  "2--ui-font.lua": "6a1a92cc24c3c49652ffb4b2fc06159c",
+  "2--ui-font.lua": "1a9ba3b1ee3735585dc6e6060c362e55",
   "2-statusbar-better-compact.lua": "f6ac7c094404d6511132b2ee3e523a0a",
   "guard.lua": "35879a5f4e914b58f56862efa47e6681",
   "2-disable-top-menu-zones.lua": "f0851a9b44edd480c63815a1b9807410",
@@ -10,6 +10,6 @@
   "2-menu-size.lua": "ba32bab9d1ef707b5c5da95cfb28f553",
   "2-filemanager-titlebar.lua": "1098aa5e5116f83d0483c43e90685cc4",
   "2-reference-page-count.lua": "9196448d779659f15be376e34f80701c",
-  "2-update-patches.lua": "54f2669cbdd5ec336dbd7d100ac5e69a",
+  "2-update-patches.lua": "e6bd7546775e6d4301aa7fe07f6f04f8",
   "2-statusbar-cycle-presets.lua": "695cc9d61a080a943d3b092b8398d5ba"
 }
