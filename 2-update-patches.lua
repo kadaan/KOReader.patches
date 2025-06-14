@@ -1,14 +1,19 @@
 local ok, guard = pcall(require, "patches/guard")
 if ok and guard:korDoesNotMeet("v2025.04-107") then return end
 
+local Blitbuffer = require("ffi/blitbuffer")
 local ButtonDialog = require("ui/widget/buttondialog")
 local CheckButton = require("ui/widget/checkbutton")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
+local Geom = require("ui/geometry")
 local InfoMessage = require("ui/widget/infomessage")
+local LineWidget = require("ui/widget/linewidget")
 local NetworkMgr = require("ui/network/manager")
+local Size = require("ui/size")
 local UIManager = require("ui/uimanager")
 local Version = require("version")
+local VerticalSpan = require("ui/widget/verticalspan")
 local http = require("socket/http")
 local json = require("json")
 local lfs = require("libs/libkoreader-lfs")
@@ -134,6 +139,11 @@ function ui:confirmCheckList(options)
             },
         },
     }
+    self.shown:addWidget(LineWidget:new {
+        dimen = Geom:new { w = self.shown.width, h = Size.line.medium },
+        background = Blitbuffer.COLOR_GRAY,
+    })
+    self.shown:addWidget(VerticalSpan:new { width = Size.padding.default })
     for _, check in ipairs(options.checks or {}) do
         check.parent = self.shown
         self.shown:addWidget(CheckButton:new(check))
