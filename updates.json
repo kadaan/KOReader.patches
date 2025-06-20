@@ -11,5 +11,6 @@
   "2-filemanager-titlebar.lua": "1098aa5e5116f83d0483c43e90685cc4",
   "2-reference-page-count.lua": "9196448d779659f15be376e34f80701c",
   "2-update-patches.lua": "3c60df4a043d0d92c6bd4ad736e5a381",
-  "2-statusbar-cycle-presets.lua": "695cc9d61a080a943d3b092b8398d5ba"
+  "2-statusbar-cycle-presets.lua": "695cc9d61a080a943d3b092b8398d5ba",
+  "2-browser-up-folder.lua": "b18c2ad0c8e2acd6c014a731716d0643"
 }
