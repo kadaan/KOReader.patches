@@ -5,6 +5,12 @@
 
 Please [check the guide here](https://koreader.rocks/user_guide/#L2-userpatches).
 
+### [🞂 2-browser-up-folder](2-browser-up-folder.lua)
+
+The Mosaic or list entry to move up a folder has been moved into the title bar: when in a subfolder, the <sub><img src="img/home.svg" style="width:2%; height:auto;"></sub> icon is replaced with an <sub><img src="img/back.top.svg" style="width:2%; height:auto;"></sub> icon.
+
+<img src="img/up_folder.png" style="width:25%; height:auto;">
+
 ### [🞂 2-ui-font](2--ui-font.lua)
 
 This patch allows you to change the UI font.
