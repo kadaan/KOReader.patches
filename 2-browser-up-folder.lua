@@ -21,7 +21,7 @@ local orig_FileChooser_genItemTable = FileChooser.genItemTable
 
 function FileChooser:genItemTable(...)
     local item_table = orig_FileChooser_genItemTable(self, ...)
-    if self.name == "filemanager" then
+    if self.name == "filemanager" and not self._dummy then
         self._left_tap_callback = self._left_tap_callback or self.title_bar.left_icon_tap_callback
         if #item_table > 0 and item_table[1].is_go_up then
             self:_changeLeftIcon(Icon.up, function() self:onFolderUp() end)

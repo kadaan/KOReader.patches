@@ -40,7 +40,10 @@ userpatch.registerPatchPluginFunc("coverbrowser", function(plugin)
 
         local dir_path = self.entry and self.entry.path
         if dir_path then
+            self.menu._dummy = true
             local entries = self.menu:genItemTableFromPath(dir_path) -- sorted
+            self.menu._dummy = false
+
             for _, entry in ipairs(entries) do
                 local bookinfo = BookInfoManager:getBookInfo(entry.path, true)
                 local widget = self:_getFolderCover(bookinfo)
