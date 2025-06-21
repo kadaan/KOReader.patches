@@ -1,6 +1,6 @@
 local BD = require("ui/bidi")
 local FileChooser = require("ui/widget/filechooser")
-local logger = require("logger")
+-- local logger = require("logger")
 
 local Icon = {
     home = "home",
