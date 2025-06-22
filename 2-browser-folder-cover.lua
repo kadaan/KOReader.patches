@@ -44,7 +44,10 @@ local function patchCoverbrowser(plugin)
 
         local dir_path = self.entry and self.entry.path
         if not dir_path then return end
-        local _, entries = self.menu:getList(dir_path, self.menu:getCollate()) -- sorted
+
+        self.menu._dummy = true
+        local entries = self.menu:genItemTableFromPath(dir_path) -- sorted
+        self.menu._dummy = false
         if not entries then return end
 
         for _, entry in ipairs(entries) do
