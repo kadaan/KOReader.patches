@@ -65,12 +65,10 @@ function FileChooser:genItemTable(...)
     end
 
     self._left_tap_callback = self._left_tap_callback or self.title_bar.left_icon_tap_callback
-    if HideUp.get() then
-        if is_sub_folder then
-            self:_changeLeftIcon(Icon.up, function() self:onFolderUp() end)
-        else
-            self:_changeLeftIcon(Icon.home, self._left_tap_callback)
-        end
+    if is_sub_folder then
+        self:_changeLeftIcon(Icon.up, function() self:onFolderUp() end)
+    else
+        self:_changeLeftIcon(Icon.home, self._left_tap_callback)
     end
     return items
 end
