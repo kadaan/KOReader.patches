@@ -7,7 +7,15 @@ local Icon = {
     up = BD.mirroredUILayout() and "back.top.rtl" or "back.top",
 }
 
-local HideFolderSetting = "filemanager_hide_folder"
+function Setting(name, default)
+    self = {}
+    self.get = function() return G_reader_settings:readSetting(name, default) end
+    self.toggle = function() G_reader_settings:toggle(name) end
+    return self
+end
+
+local HideEmpty = Setting("filemanager_hide_empty_folder", false)
+local HideUp = Setting("filemanager_hide_up_folder", true)
 
 function FileChooser:_changeLeftIcon(icon, func)
     local titlebar = self.title_bar
@@ -44,22 +52,25 @@ function FileChooser:genItemTable(...)
     local items = {}
     local is_sub_folder = false
     for _, item in ipairs(item_table) do
-        if item.is_go_up then
+        if item.is_go_up and HideUp.get() then
             is_sub_folder = true
-        elseif not (G_reader_settings:readSetting(HideFolderSetting) and self:_isEmptyDir(item)) then
+        elseif not (HideEmpty.get() and self:_isEmptyDir(item)) then
             table.insert(items, item)
         end
     end
-    if #items == 0 then
+
+    if HideEmpty.get() and #items == 0 then
         self:onFolderUp()
         return
     end
 
     self._left_tap_callback = self._left_tap_callback or self.title_bar.left_icon_tap_callback
-    if is_sub_folder then
-        self:_changeLeftIcon(Icon.up, function() self:onFolderUp() end)
-    else
-        self:_changeLeftIcon(Icon.home, self._left_tap_callback)
+    if HideUp.get() then
+        if is_sub_folder then
+            self:_changeLeftIcon(Icon.up, function() self:onFolderUp() end)
+        else
+            self:_changeLeftIcon(Icon.home, self._left_tap_callback)
+        end
     end
     return items
 end
@@ -72,18 +83,20 @@ local _ = require("gettext")
 local orig_FileManagerMenu_setUpdateItemTable = FileManagerMenu.setUpdateItemTable
 
 function FileManagerMenu:setUpdateItemTable()
-    table.insert(
-        FileManagerMenuOrder.filemanager_settings,
-        #FileManagerMenuOrder.filemanager_settings - 1,
-        "hide_empty_folder"
-    )
-    self.menu_items.hide_empty_folder = {
-        text = _("Hide empty folder"),
-        checked_func = function() return G_reader_settings:readSetting(HideFolderSetting, false) end,
-        callback = function(touchmenu_instance)
-            G_reader_settings:toggle(HideFolderSetting)
-            self.ui.file_chooser:refreshPath()
-        end,
-    }
+    local function patch(entry, text, setting)
+        local settings_order = FileManagerMenuOrder.filemanager_settings
+        table.insert(settings_order, #settings_order - 1, entry)
+        self.menu_items[entry] = {
+            text = text,
+            checked_func = setting.get,
+            callback = function(touchmenu_instance)
+                setting.toggle()
+                self.ui.file_chooser:refreshPath()
+            end,
+        }
+    end
+
+    patch("hide_empty_folder", _("Hide empty folders"), HideEmpty)
+    patch("hide_up_folder", _("Hide up folders"), HideUp)
     orig_FileManagerMenu_setUpdateItemTable(self)
 end

@@ -21,7 +21,9 @@ The Mosaic or list entry to move up a folder has been moved into the title bar: 
 
 <img src="img/up_folder.png" style="width:25%; height:auto;">
 
-You can also hide empty folders. Please find the option under <sub><img src="img/appbar.navigation.svg" style="width:2%; height:auto;"></sub> **🞂 Hide Empty Folders**.
+Please find the option under <sub><img src="img/appbar.navigation.svg" style="width:2%; height:auto;"></sub> **🞂 Hide up folders**
+
+You can also hide empty folders. Please find the option under <sub><img src="img/appbar.navigation.svg" style="width:2%; height:auto;"></sub> **🞂 Hide empty folders**.
 
 ### [🞂 2-ui-font](2--ui-font.lua)
 
