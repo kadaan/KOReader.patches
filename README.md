@@ -25,6 +25,8 @@ Please find the option under <sub><img src="img/appbar.navigation.svg" style="wi
 
 You can also hide empty folders. Please find the option under <sub><img src="img/appbar.navigation.svg" style="width:2%; height:auto;"></sub> **🞂 Hide empty folders**.
 
+<img src="https://github.com/user-attachments/assets/849ad0a1-7bee-4e25-abaf-61ffffe1865f" width=25%>
+
 ### [🞂 2-ui-font](2--ui-font.lua)
 
 This patch allows you to change the UI font.
