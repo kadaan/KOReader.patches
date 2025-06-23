@@ -2,6 +2,7 @@ local AlphaContainer = require("ui/widget/container/alphacontainer")
 local BD = require("ui/bidi")
 local BottomContainer = require("ui/widget/container/bottomcontainer")
 local CenterContainer = require("ui/widget/container/centercontainer")
+local FileChooser = require("ui/widget/filechooser")
 local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local ImageWidget = require("ui/widget/imagewidget")
@@ -11,6 +12,14 @@ local TextBoxWidget = require("ui/widget/textboxwidget")
 local userpatch = require("userpatch")
 
 -- local logger = require("logger")
+
+local orig_FileChooser_getList = FileChooser.getList
+local cached_list = {}
+function FileChooser:getList(path, collate)
+    local key = tostring(path) .. tostring(collate)
+    cached_list[key] = cached_list[key] or { orig_FileChooser_getList(self, path, collate) }
+    return table.unpack(cached_list[key])
+end
 
 local function capitalize(sentence)
     local words = {}
@@ -41,7 +50,6 @@ local function patchCoverbrowser(plugin)
         end
 
         if self.entry.is_file or self.entry.file then return end -- it's a file
-
         local dir_path = self.entry and self.entry.path
         if not dir_path then return end
 
@@ -51,12 +59,14 @@ local function patchCoverbrowser(plugin)
         if not entries then return end
 
         for _, entry in ipairs(entries) do
-            local bookinfo = BookInfoManager:getBookInfo(entry.path, true)
-            local widget = self:_getFolderCover(bookinfo)
-            if widget then
-                if self._underline_container[1] then self._underline_container[1]:free(true) end
-                self._underline_container[1] = widget
-                self._foldercover_processed = true
+            if entry.is_file or entry.file then
+                local bookinfo = BookInfoManager:getBookInfo(entry.path, true)
+                local widget = self:_getFolderCover(bookinfo)
+                if widget then
+                    if self._underline_container[1] then self._underline_container[1]:free(true) end
+                    self._underline_container[1] = widget
+                    self._foldercover_processed = true
+                end
                 break
             end
         end
@@ -65,6 +75,7 @@ local function patchCoverbrowser(plugin)
     function MosaicMenuItem:_getFolderCover(bookinfo)
         if
             bookinfo
+            and bookinfo.cover_bb
             and bookinfo.has_cover
             and bookinfo.cover_fetched
             and not bookinfo.ignore_cover
