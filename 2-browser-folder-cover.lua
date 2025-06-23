@@ -15,6 +15,7 @@ local userpatch = require("userpatch")
 
 local orig_FileChooser_getList = FileChooser.getList
 local cached_list = {}
+
 function FileChooser:getList(path, collate)
     local key = tostring(path) .. tostring(collate)
     cached_list[key] = cached_list[key] or { orig_FileChooser_getList(self, path, collate) }
@@ -37,7 +38,7 @@ local function getAlphaFrame(border_size, alpha, widget)
     }
 end
 
-local function patchCoverbrowser(plugin)
+local function patchCoverBrowser(plugin)
     local MosaicMenu = require("mosaicmenu")
     local MosaicMenuItem = userpatch.getUpValue(MosaicMenu._updateItemsBuildUI, "MosaicMenuItem")
     local BookInfoManager = userpatch.getUpValue(MosaicMenuItem.update, "BookInfoManager")
@@ -148,4 +149,4 @@ local function patchCoverbrowser(plugin)
     end
 end
 
-userpatch.registerPatchPluginFunc("coverbrowser", patchCoverbrowser)
+userpatch.registerPatchPluginFunc("coverbrowser", patchCoverBrowser)
