@@ -9,7 +9,7 @@ Please [check the guide here](https://koreader.rocks/user_guide/#L2-userpatches)
 
 This tool is used by patches that require a minimum KOReader version to work, and it prevents them from crashing if the requirement isn't met.
 
-### [🞂 2-browser-folder-cover](browser-folder-cover.lua)
+### [🞂 2-browser-folder-cover](2-browser-folder-cover.lua)
 
 This patch adds images to the mosaic folder entries: it uses the first cover according to the current sorting chosen by the user.
 
