@@ -1,15 +1,22 @@
 local AlphaContainer = require("ui/widget/container/alphacontainer")
 local BD = require("ui/bidi")
+local Blitbuffer = require("ffi/blitbuffer")
 local BottomContainer = require("ui/widget/container/bottomcontainer")
 local CenterContainer = require("ui/widget/container/centercontainer")
+local Device = require("device")
 local FileChooser = require("ui/widget/filechooser")
 local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local ImageWidget = require("ui/widget/imagewidget")
+local LineWidget = require("ui/widget/linewidget")
 local OverlapGroup = require("ui/widget/overlapgroup")
 local Size = require("ui/size")
 local TextBoxWidget = require("ui/widget/textboxwidget")
+local VerticalGroup = require("ui/widget/verticalgroup")
+local VerticalSpan = require("ui/widget/verticalspan")
 local userpatch = require("userpatch")
+
+local Screen = Device.screen
 
 -- local logger = require("logger")
 
@@ -84,12 +91,15 @@ local function patchCoverBrowser(plugin)
         then
             local border_size = Size.border.thick
             local alpha = 0.75
+            book_thick = Screen:scaleBySize(2.5)
+            book_margin = Size.line.medium
+            local top_h = 2 * (book_thick + book_margin)
 
             local _, _, scale_factor = BookInfoManager.getCachedCoverSize(
                 bookinfo.cover_w,
                 bookinfo.cover_h,
                 self.width - 2 * border_size,
-                self.height - 2 * border_size
+                self.height - 2 * border_size - top_h
             )
             local image = ImageWidget:new { image = bookinfo.cover_bb, scale_factor = scale_factor }
             image:_render()
@@ -97,13 +107,35 @@ local function patchCoverBrowser(plugin)
             local dimen = { w = img_size.w + 2 * border_size, h = img_size.h + 2 * border_size }
             local directory, nbitems = self:_getTextBoxes { w = img_size.w, h = img_size.h }
 
-            return CenterContainer:new {
-                dimen = { w = self.width, h = self.height },
+            return VerticalGroup:new {
+                LineWidget:new {
+                    background = Blitbuffer.COLOR_GRAY_6,
+                    dimen = { w = img_size.w * 0.95, h = book_thick },
+                },
+                VerticalSpan:new { width = book_margin },
+                LineWidget:new {
+                    background = Blitbuffer.COLOR_GRAY_6,
+                    dimen = { w = img_size.w * 0.975, h = book_thick },
+                },
+                VerticalSpan:new { width = book_margin },
                 OverlapGroup:new {
-                    dimen = dimen,
-                    FrameContainer:new { padding = 0, bordersize = border_size, image },
-                    CenterContainer:new { dimen = dimen, getAlphaFrame(border_size, alpha, directory) },
-                    BottomContainer:new { dimen = dimen, getAlphaFrame(border_size, alpha, nbitems) },
+                    dimen = { w = self.width, h = self.height - top_h },
+                    FrameContainer:new {
+                        padding = 0,
+                        bordersize = border_size,
+                        image,
+                        overlap_align = "center",
+                    },
+                    CenterContainer:new {
+                        dimen = dimen,
+                        getAlphaFrame(border_size, alpha, directory),
+                        overlap_align = "center",
+                    },
+                    BottomContainer:new {
+                        dimen = dimen,
+                        getAlphaFrame(border_size, alpha, nbitems),
+                        overlap_align = "center",
+                    },
                 },
             }
         end
