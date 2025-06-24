@@ -13,7 +13,7 @@ This tool is used by patches that require a minimum KOReader version to work, an
 
 This patch adds images to the mosaic folder entries: it uses the first cover according to the current sorting chosen by the user.
 
-<img src="img/cover_folder.png" style="width:25%; height:auto;">
+<img src="img/cover_folder.png" style="width:40%; height:auto;">
 
 ### [🞂 2-browser-up-folder](2-browser-up-folder.lua)
 
