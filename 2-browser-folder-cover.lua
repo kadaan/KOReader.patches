@@ -20,10 +20,7 @@ local Screen = Device.screen
 
 -- local logger = require("logger")
 
-local orig_FileChooser_getList = FileChooser.getList
-local cached_list = {}
-
-local function to_key(...)
+local function toKey(...)
     local keys = {}
     for _, key in pairs { ... } do
         if type(key) == "table" then
@@ -39,8 +36,11 @@ local function to_key(...)
     return table.concat(keys, "")
 end
 
+local orig_FileChooser_getList = FileChooser.getList
+local cached_list = {}
+
 function FileChooser:getList(path, collate)
-    local key = to_key(path, collate, self.show_filter.status)
+    local key = toKey(path, collate, self.show_filter.status)
     cached_list[key] = cached_list[key] or { orig_FileChooser_getList(self, path, collate) }
     return table.unpack(cached_list[key])
 end
@@ -60,6 +60,21 @@ local function getAlphaFrame(border_size, alpha, widget)
         AlphaContainer:new { alpha = alpha, widget },
     }
 end
+
+local Folder = {
+    edge = {
+        thick = Screen:scaleBySize(2.5),
+        margin = Size.line.medium,
+        color = Blitbuffer.COLOR_GRAY_4,
+        width = 0.975,
+    },
+    face = {
+        border_size = Size.border.thick,
+        alpha = 0.75,
+        nb_items_font_size = 17,
+        dir_max_font_size = 25,
+    },
+}
 
 local function patchCoverBrowser(plugin)
     local MosaicMenu = require("mosaicmenu")
@@ -105,51 +120,48 @@ local function patchCoverBrowser(plugin)
             and not bookinfo.ignore_cover
             and not BookInfoManager.isCachedCoverInvalid(bookinfo, self.menu.cover_specs)
         then
-            local border_size = Size.border.thick
-            local alpha = 0.75
-            book_thick = Screen:scaleBySize(2.5)
-            book_margin = Size.line.medium
-            local top_h = 2 * (book_thick + book_margin)
+            local top_h = 2 * (Folder.edge.thick + Folder.edge.margin)
 
             local _, _, scale_factor = BookInfoManager.getCachedCoverSize(
                 bookinfo.cover_w,
                 bookinfo.cover_h,
-                self.width - 2 * border_size,
-                self.height - 2 * border_size - top_h
+                self.width - 2 * Folder.face.border_size,
+                self.height - 2 * Folder.face.border_size - top_h
             )
             local image = ImageWidget:new { image = bookinfo.cover_bb, scale_factor = scale_factor }
             image:_render()
             local img_size = image:getSize()
-            local dimen = { w = img_size.w + 2 * border_size, h = img_size.h + 2 * border_size }
+            local dimen =
+                { w = img_size.w + 2 * Folder.face.border_size, h = img_size.h + 2 * Folder.face.border_size }
             local directory, nbitems = self:_getTextBoxes { w = img_size.w, h = img_size.h }
 
             return VerticalGroup:new {
                 LineWidget:new {
-                    background = Blitbuffer.COLOR_GRAY_6,
-                    dimen = { w = img_size.w * 0.95, h = book_thick },
+                    background = Folder.edge.color,
+                    dimen = { w = img_size.w * (Folder.edge.width ^ 2), h = Folder.edge.thick },
                 },
-                VerticalSpan:new { width = book_margin },
+                VerticalSpan:new { width = Folder.edge.margin },
                 LineWidget:new {
-                    background = Blitbuffer.COLOR_GRAY_6,
-                    dimen = { w = img_size.w * 0.975, h = book_thick },
+                    background = Folder.edge.color,
+                    dimen = { w = img_size.w * Folder.edge.width, h = Folder.edge.thick },
                 },
-                VerticalSpan:new { width = book_margin },
+                VerticalSpan:new { width = Folder.edge.margin },
                 OverlapGroup:new {
                     dimen = { w = self.width, h = self.height - top_h },
                     FrameContainer:new {
                         padding = 0,
-                        bordersize = border_size,
+                        bordersize = Folder.face.border_size,
                         image,
                         overlap_align = "center",
                     },
                     CenterContainer:new {
                         dimen = dimen,
-                        getAlphaFrame(border_size, alpha, directory),
+                        getAlphaFrame(Folder.face.border_size, Folder.face.alpha, directory),
                         overlap_align = "center",
                     },
                     BottomContainer:new {
                         dimen = dimen,
-                        getAlphaFrame(border_size, alpha, nbitems),
+                        getAlphaFrame(Folder.face.border_size, Folder.face.alpha, nbitems),
                         overlap_align = "center",
                     },
                 },
@@ -160,7 +172,7 @@ local function patchCoverBrowser(plugin)
     function MosaicMenuItem:_getTextBoxes(dimen)
         local nbitems = TextBoxWidget:new {
             text = self.mandatory,
-            face = Font:getFace("cfont", 17),
+            face = Font:getFace("cfont", Folder.face.nb_items_font_size),
             width = dimen.w,
             alignment = "center",
         }
@@ -169,7 +181,7 @@ local function patchCoverBrowser(plugin)
         if text:match("/$") then text = text:sub(1, -2) end -- remove "/"
         text = BD.directory(capitalize(text))
         local available_height = dimen.h - 2 * nbitems:getSize().h
-        local dir_font_size = 25
+        local dir_font_size = Folder.face.dir_max_font_size
         local directory
 
         while true do
