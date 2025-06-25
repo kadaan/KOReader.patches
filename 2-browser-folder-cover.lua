@@ -23,8 +23,24 @@ local Screen = Device.screen
 local orig_FileChooser_getList = FileChooser.getList
 local cached_list = {}
 
+local function to_key(...)
+    local keys = {}
+    for _, key in pairs { ... } do
+        if type(key) == "table" then
+            table.insert(keys, "table")
+            for k, v in pairs(key) do
+                table.insert(keys, tostring(k))
+                table.insert(keys, tostring(v))
+            end
+        else
+            table.insert(keys, tostring(key))
+        end
+    end
+    return table.concat(keys, "")
+end
+
 function FileChooser:getList(path, collate)
-    local key = tostring(path) .. tostring(collate) .. tostring(self.show_filter.status)
+    local key = to_key(path, collate, self.show_filter.status)
     cached_list[key] = cached_list[key] or { orig_FileChooser_getList(self, path, collate) }
     return table.unpack(cached_list[key])
 end
