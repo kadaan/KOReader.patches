@@ -10,8 +10,10 @@ local FrameContainer = require("ui/widget/container/framecontainer")
 local ImageWidget = require("ui/widget/imagewidget")
 local LineWidget = require("ui/widget/linewidget")
 local OverlapGroup = require("ui/widget/overlapgroup")
+local RightContainer = require("ui/widget/container/rightcontainer")
 local Size = require("ui/size")
 local TextBoxWidget = require("ui/widget/textboxwidget")
+local TextWidget = require("ui/widget/textwidget")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local userpatch = require("userpatch")
@@ -53,14 +55,6 @@ local function capitalize(sentence)
     return table.concat(words, " ")
 end
 
-local function getAlphaFrame(border_size, alpha, widget)
-    return FrameContainer:new {
-        padding = 0,
-        bordersize = border_size,
-        AlphaContainer:new { alpha = alpha, widget },
-    }
-end
-
 local Folder = {
     edge = {
         thick = Screen:scaleBySize(2.5),
@@ -71,7 +65,8 @@ local Folder = {
     face = {
         border_size = Size.border.thick,
         alpha = 0.75,
-        nb_items_font_size = 17,
+        nb_items_font_size = 20,
+        nb_items_margin = Screen:scaleBySize(5),
         dir_max_font_size = 25,
     },
 }
@@ -134,6 +129,8 @@ local function patchCoverBrowser(plugin)
             local dimen =
                 { w = img_size.w + 2 * Folder.face.border_size, h = img_size.h + 2 * Folder.face.border_size }
             local directory, nbitems = self:_getTextBoxes { w = img_size.w, h = img_size.h }
+            local size = nbitems:getSize()
+            nbitems_size = math.max(size.w, size.h)
 
             return VerticalGroup:new {
                 LineWidget:new {
@@ -156,12 +153,30 @@ local function patchCoverBrowser(plugin)
                     },
                     CenterContainer:new {
                         dimen = dimen,
-                        getAlphaFrame(Folder.face.border_size, Folder.face.alpha, directory),
+                        FrameContainer:new {
+                            padding = 0,
+                            bordersize = Folder.face.border_size,
+                            AlphaContainer:new { alpha = Folder.face.alpha, directory },
+                        },
                         overlap_align = "center",
                     },
                     BottomContainer:new {
                         dimen = dimen,
-                        getAlphaFrame(Folder.face.border_size, Folder.face.alpha, nbitems),
+                        RightContainer:new {
+                            dimen = {
+                                w = dimen.w - Folder.face.nb_items_margin,
+                                h = nbitems_size
+                                    + Folder.face.nb_items_margin * 2
+                                    + math.ceil(nbitems_size * 0.125),
+                            },
+                            FrameContainer:new {
+                                padding = 0,
+                                padding_bottom = math.ceil(nbitems_size * 0.125),
+                                radius = math.ceil(nbitems_size * 0.5),
+                                background = Blitbuffer.COLOR_WHITE,
+                                CenterContainer:new { dimen = { w = nbitems_size, h = nbitems_size }, nbitems },
+                            },
+                        },
                         overlap_align = "center",
                     },
                 },
@@ -170,11 +185,11 @@ local function patchCoverBrowser(plugin)
     end
 
     function MosaicMenuItem:_getTextBoxes(dimen)
-        local nbitems = TextBoxWidget:new {
-            text = self.mandatory,
+        local nbitems = TextWidget:new {
+            text = self.mandatory:match("(%d+) \u{F016}") or "", -- nb books
             face = Font:getFace("cfont", Folder.face.nb_items_font_size),
-            width = dimen.w,
-            alignment = "center",
+            bold = true,
+            padding = 0,
         }
 
         local text = self.text
