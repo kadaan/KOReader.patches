@@ -13,5 +13,6 @@
   "2-screensaver-chapter.lua": "e586e0f5d22078e17b5461bb5c46c6f7",
   "2-statusbar-thin-chapter.lua": "2d130d61e14b0dba0bc247269e379101",
   "2-filemanager-titlebar.lua": "1098aa5e5116f83d0483c43e90685cc4",
-  "2-update-patches.lua": "3c60df4a043d0d92c6bd4ad736e5a381"
+  "2-update-patches.lua": "3c60df4a043d0d92c6bd4ad736e5a381",
+  "2-browser-hide-underline.lua": "0d8c94a22e209912dacc027cd83c9708"
 }
