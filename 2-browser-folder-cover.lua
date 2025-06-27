@@ -160,6 +160,7 @@ local function patchCoverBrowser(plugin)
         local nb_size = math.max(size.w, size.h)
 
         local widget = VerticalGroup:new {
+            VerticalSpan:new { width = math.max(0, math.ceil((self.height - (top_h + dimen.h)) * 0.5)) },
             LineWidget:new {
                 background = Folder.edge.color,
                 dimen = { w = math.floor(dimen.w * (Folder.edge.width ^ 2)), h = Folder.edge.thick },
