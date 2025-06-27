@@ -17,10 +17,24 @@ local TextWidget = require("ui/widget/textwidget")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local userpatch = require("userpatch")
+local util = require("util")
 
 local Screen = Device.screen
 
 -- local logger = require("logger")
+
+-- local FolderCover = {
+--     name = ".cover",
+--     exts = { ".jpg", ".jpeg", ".png", ".webp", ".gif" },
+-- }
+
+-- local function findCover(dir_path) -- getlist???!!!
+--     local path = dir_path .. "/" .. FolderCover.name
+--     for _, ext in ipairs(FolderCover.exts) do
+--         local fname = path .. ext
+--         if util.fileExists(fname) then return fname end
+--     end
+-- end
 
 local function toKey(...)
     local keys = {}
@@ -60,7 +74,7 @@ local Folder = {
         thick = Screen:scaleBySize(2.5),
         margin = Size.line.medium,
         color = Blitbuffer.COLOR_GRAY_4,
-        width = 0.975,
+        width = 0.97,
     },
     face = {
         border_size = Size.border.thick,
@@ -74,6 +88,7 @@ local Folder = {
 local function patchCoverBrowser(plugin)
     local MosaicMenu = require("mosaicmenu")
     local MosaicMenuItem = userpatch.getUpValue(MosaicMenu._updateItemsBuildUI, "MosaicMenuItem")
+    if not MosaicMenuItem then return end -- Protect against remnants of project title
     local BookInfoManager = userpatch.getUpValue(MosaicMenuItem.update, "BookInfoManager")
     local original_update = MosaicMenuItem.update
 
@@ -135,12 +150,12 @@ local function patchCoverBrowser(plugin)
             return VerticalGroup:new {
                 LineWidget:new {
                     background = Folder.edge.color,
-                    dimen = { w = img_size.w * (Folder.edge.width ^ 2), h = Folder.edge.thick },
+                    dimen = { w = math.floor(dimen.w * (Folder.edge.width ^ 2)), h = Folder.edge.thick },
                 },
                 VerticalSpan:new { width = Folder.edge.margin },
                 LineWidget:new {
                     background = Folder.edge.color,
-                    dimen = { w = img_size.w * Folder.edge.width, h = Folder.edge.thick },
+                    dimen = { w = math.floor(dimen.w * Folder.edge.width), h = Folder.edge.thick },
                 },
                 VerticalSpan:new { width = Folder.edge.margin },
                 OverlapGroup:new {
