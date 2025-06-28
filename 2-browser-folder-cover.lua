@@ -52,13 +52,14 @@ local function toKey(...)
     return table.concat(keys, "")
 end
 
-local orig_FileChooser_getList = FileChooser.getList
+local orig_FileChooser_getListItem = FileChooser.getListItem
 local cached_list = {}
 
-function FileChooser:getList(path, collate)
-    local key = toKey(path, collate, self.show_filter.status)
-    cached_list[key] = cached_list[key] or { orig_FileChooser_getList(self, path, collate) }
-    return table.unpack(cached_list[key])
+function FileChooser:getListItem(dirpath, f, fullpath, attributes, collate)
+    local key = toKey(dirpath, f, fullpath, attributes, collate)
+    cached_list[key] = cached_list[key]
+        or orig_FileChooser_getListItem(self, dirpath, f, fullpath, attributes, collate)
+    return cached_list[key]
 end
 
 local function capitalize(sentence)
