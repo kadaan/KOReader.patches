@@ -98,7 +98,7 @@ local function patchCoverBrowser(plugin)
             return
         end
 
-        if self.entry.is_file or self.entry.file then return end -- it's a file
+        if self.entry.is_file or self.entry.file or not self.mandatory then return end -- it's a file
         local dir_path = self.entry and self.entry.path
         if not dir_path then return end
 
