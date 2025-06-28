@@ -116,7 +116,7 @@ local function patchCoverBrowser(plugin)
                 return orig_w, orig_h
             end)
             if success then
-                self:_setFolderCover { file = cover_file, w = w, h = h }
+                self:_setFolderCover { file = cover_file, w = w, h = h, scale_to_fit = true }
                 return
             end
         end
@@ -150,12 +150,25 @@ local function patchCoverBrowser(plugin)
 
     function MosaicMenuItem:_setFolderCover(img)
         local top_h = 2 * (Folder.edge.thick + Folder.edge.margin)
-        local target_w, target_h =
-            self.width - 2 * Folder.face.border_size, self.height - 2 * Folder.face.border_size - top_h
-        local _, _, scale_factor = BookInfoManager.getCachedCoverSize(img.w, img.h, target_w, target_h)
-        local image = ImageWidget:new { file = img.file, image = img.data, scale_factor = scale_factor }
+        local target = {
+            w = self.width - 2 * Folder.face.border_size,
+            h = self.height - 2 * Folder.face.border_size - top_h,
+        }
+
+        local img_options = { file = img.file, image = img.data }
+        if img.scale_to_fit then
+            img_options.scale_factor = math.max(target.w / img.w, target.h / img.h)
+            img_options.width = target.w
+            img_options.height = target.h
+        else
+            local _, _, scale_factor = BookInfoManager.getCachedCoverSize(img.w, img.h, target.w, target.h)
+            img_options.scale_factor = scale_factor
+        end
+
+        local image = ImageWidget:new(img_options)
         local size = image:getSize()
         local dimen = { w = size.w + 2 * Folder.face.border_size, h = size.h + 2 * Folder.face.border_size }
+
         local directory, nbitems = self:_getTextBoxes { w = size.w, h = size.h }
         local size = nbitems:getSize()
         local nb_size = math.max(size.w, size.h)
