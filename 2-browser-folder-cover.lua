@@ -14,14 +14,18 @@ local RightContainer = require("ui/widget/container/rightcontainer")
 local Size = require("ui/size")
 local TextBoxWidget = require("ui/widget/textboxwidget")
 local TextWidget = require("ui/widget/textwidget")
+local TopContainer = require("ui/widget/container/topcontainer")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local userpatch = require("userpatch")
 local util = require("util")
 
+local _ = require("gettext")
 local Screen = Device.screen
 
--- local logger = require("logger")
+local logger = require("logger")
+
+local menu_patched = false
 
 local FolderCover = {
     name = ".cover",
@@ -34,6 +38,28 @@ local function findCover(dir_path)
         local fname = path .. ext
         if util.fileExists(fname) then return fname end
     end
+end
+
+local function getMenuItem(menu, ...) -- path
+    local function findItem(sub_items, texts)
+        local find = {}
+        local texts = type(texts) == "table" and texts or { texts }
+        -- stylua: ignore
+        for _, text in ipairs(texts) do find[text] = true end
+        for _, item in ipairs(sub_items) do
+            local text = item.text or (item.text_func and item.text_func())
+            if text and find[text] then return item end
+        end
+    end
+
+    local sub_items, item
+    for _, texts in ipairs { ... } do -- walk path
+        sub_items = (item or menu).sub_item_table
+        if not sub_items then return end
+        item = findItem(sub_items, texts)
+        if not item then return end
+    end
+    return item
 end
 
 local function toKey(...)
@@ -93,6 +119,23 @@ local function patchCoverBrowser(plugin)
     local BookInfoManager = userpatch.getUpValue(MosaicMenuItem.update, "BookInfoManager")
     local original_update = MosaicMenuItem.update
 
+    -- settings
+    function BooleanSetting(text, name, default)
+        self = { text = text }
+        self.get = function()
+            local setting = BookInfoManager:getSetting(name)
+            if default then return not setting end
+            return setting
+        end
+        self.toggle = function() return BookInfoManager:toggleSetting(name) end
+        return self
+    end
+
+    local settings = {
+        crop_to_fit = BooleanSetting(_("Crop folder custom image"), "folder_crop_custom_image", true),
+        name_centered = BooleanSetting(_("Folder name centered"), "folder_name_centered", true),
+    }
+
     function MosaicMenuItem:update(...)
         original_update(self, ...)
         if self._foldercover_processed or self.menu.no_refresh_covers or not self.do_cover_image then
@@ -116,7 +159,7 @@ local function patchCoverBrowser(plugin)
                 return orig_w, orig_h
             end)
             if success then
-                self:_setFolderCover { file = cover_file, w = w, h = h, scale_to_fit = true }
+                self:_setFolderCover { file = cover_file, w = w, h = h, scale_to_fit = settings.crop_to_fit.get() }
                 return
             end
         end
@@ -193,7 +236,7 @@ local function patchCoverBrowser(plugin)
                     image,
                     overlap_align = "center",
                 },
-                CenterContainer:new {
+                (settings.name_centered.get() and CenterContainer or TopContainer):new {
                     dimen = dimen,
                     FrameContainer:new {
                         padding = 0,
@@ -262,6 +305,29 @@ local function patchCoverBrowser(plugin)
         end
 
         return directory, nbitems
+    end
+
+    -- menu
+    local orig_CoverBrowser_addToMainMenu = plugin.addToMainMenu
+
+    function plugin:addToMainMenu(menu_items)
+        orig_CoverBrowser_addToMainMenu(self, menu_items)
+        if menu_items.filebrowser_settings == nil or menu_patched then return end
+        menu_patched = true
+
+        local item = getMenuItem(menu_items.filebrowser_settings, _("Mosaic and detailed list settings"))
+        if item then
+            for _, setting in pairs(settings) do
+                table.insert(item.sub_item_table, {
+                    text = setting.text,
+                    checked_func = function() return setting.get() end,
+                    callback = function()
+                        setting.toggle()
+                        self.ui.file_chooser:updateItems()
+                    end,
+                })
+            end
+        end
     end
 end
 

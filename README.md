@@ -9,7 +9,6 @@ Please [check the guide here](https://koreader.rocks/user_guide/#L2-userpatches)
 
 This tool is used by patches that require a minimum KOReader version to work, and it prevents them from crashing if the requirement isn't met.
 
-
 ### [🞂 2-browser-hide-underline](2-browser-hide-underline.lua)
 
 This patch removes the underline beneath the last visited book or folder.
@@ -21,6 +20,10 @@ This patch adds images to the mosaic folder entries: it uses the first cover acc
 If you want to use your own folder cover, please add an image file in the folder named `.cover.jpg`, `.cover.jpeg`, `.cover.png`, `.cover.webp`, or `.cover.gif`.
 
 <img src="img/cover_folder.png" style="width:40%; height:auto;">
+
+You'll find its options under <sub><img src="img/appbar.navigation.svg" style="width:2%; height:auto;"></sub> **🞂 Settings 🞂 Mosaic and detailed list settings**:
+- **🞂 Folder name centered**
+- **🞂 Crop folder custom image**
 
 ### [🞂 2-browser-up-folder](2-browser-up-folder.lua)
 
