@@ -13,6 +13,8 @@ This tool is used by patches that require a minimum KOReader version to work, an
 
 This patch removes the underline beneath the last visited book or folder.
 
+You'll find its options under <sub><img src="img/appbar.navigation.svg" style="width:2%; height:auto;"></sub> **🞂 Settings 🞂 Mosaic and detailed list settings 🞂 Hide last visited underline**
+
 ### [🞂 2-browser-folder-cover](2-browser-folder-cover.lua)
 
 This patch adds images to the mosaic folder entries: it uses the first cover according to the current sorting chosen by the user.
