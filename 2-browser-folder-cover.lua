@@ -140,6 +140,7 @@ local function patchCoverBrowser(plugin)
     local settings = {
         crop_to_fit = BooleanSetting(_("Crop folder custom image"), "folder_crop_custom_image", true),
         name_centered = BooleanSetting(_("Folder name centered"), "folder_name_centered", true),
+        show_folder_name = BooleanSetting(_("Show folder name"), "folder_name_show", true),
     }
 
     -- cover item
@@ -216,6 +217,21 @@ local function patchCoverBrowser(plugin)
         local size = nbitems:getSize()
         local nb_size = math.max(size.w, size.h)
 
+        local folder_name_widget
+        if settings.show_folder_name.get() then
+            folder_name_widget = (settings.name_centered.get() and CenterContainer or TopContainer):new {
+                dimen = dimen,
+                FrameContainer:new {
+                    padding = 0,
+                    bordersize = Folder.face.border_size,
+                    AlphaContainer:new { alpha = Folder.face.alpha, directory },
+                },
+                overlap_align = "center",
+            }
+        else
+            folder_name_widget = VerticalSpan:new { width = 0 }
+        end
+
         local widget = CenterContainer:new {
             dimen = { w = self.width, h = self.height },
             VerticalGroup:new {
@@ -238,15 +254,7 @@ local function patchCoverBrowser(plugin)
                         image,
                         overlap_align = "center",
                     },
-                    (settings.name_centered.get() and CenterContainer or TopContainer):new {
-                        dimen = dimen,
-                        FrameContainer:new {
-                            padding = 0,
-                            bordersize = Folder.face.border_size,
-                            AlphaContainer:new { alpha = Folder.face.alpha, directory },
-                        },
-                        overlap_align = "center",
-                    },
+                    folder_name_widget,
                     BottomContainer:new {
                         dimen = dimen,
                         RightContainer:new {

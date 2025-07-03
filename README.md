@@ -23,7 +23,7 @@ If you want to use your own folder cover, please add an image file in the folder
 
 <img src="img/cover_folder.png" style="width:40%; height:auto;">
 
-You'll find its options under <sub><img src="img/appbar.navigation.svg" style="width:2%; height:auto;"></sub> **🞂 Settings 🞂 Mosaic and detailed list settings 🞂 Folder name centered** and **Crop folder custom image**
+You'll find its options under <sub><img src="img/appbar.navigation.svg" style="width:2%; height:auto;"></sub> **🞂 Settings 🞂 Mosaic and detailed list settings 🞂 Folder name centered** and **Crop folder custom image** and **Show folder name**
 
 ### [🞂 2-browser-up-folder](2-browser-up-folder.lua)
 
