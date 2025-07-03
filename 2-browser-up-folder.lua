@@ -49,8 +49,6 @@ function FileChooser:genItemTable(dirs, files, path)
     local item_table = orig_FileChooser_genItemTable(self, dirs, files, path)
     if self._dummy or not self.name == "filemanager" then return item_table end
 
-    logger.info("!!!!!!!!!!", item_table)
-
     local items = {}
     local is_sub_folder = false
     for _, item in ipairs(item_table) do
