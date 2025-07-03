@@ -45,14 +45,18 @@ end
 
 local orig_FileChooser_genItemTable = FileChooser.genItemTable
 
-function FileChooser:genItemTable(...)
-    local item_table = orig_FileChooser_genItemTable(self, ...)
+function FileChooser:genItemTable(dirs, files, path)
+    local item_table = orig_FileChooser_genItemTable(self, dirs, files, path)
     if self._dummy or not self.name == "filemanager" then return item_table end
+
+    logger.info("!!!!!!!!!!", item_table)
 
     local items = {}
     local is_sub_folder = false
     for _, item in ipairs(item_table) do
-        if item.is_go_up and HideUp.get() then
+        if item.path:find("\u{e257}/") then
+            table.insert(items, item) -- fix https://github.com/sebdelsol/KOReader.patches/issues/23
+        elseif (item.is_go_up or item.text:find("\u{2B06} ..")) and HideUp.get() then
             is_sub_folder = true
         elseif not (HideEmpty.get() and self:_isEmptyDir(item)) then
             table.insert(items, item)
