@@ -213,6 +213,13 @@ local function patchCoverBrowser(plugin)
         local size = image:getSize()
         local dimen = { w = size.w + 2 * Folder.face.border_size, h = size.h + 2 * Folder.face.border_size }
 
+        local image_widget = FrameContainer:new {
+            padding = 0,
+            bordersize = Folder.face.border_size,
+            image,
+            overlap_align = "center",
+        }
+
         local directory, nbitems = self:_getTextBoxes { w = size.w, h = size.h }
         local size = nbitems:getSize()
         local nb_size = math.max(size.w, size.h)
@@ -232,6 +239,29 @@ local function patchCoverBrowser(plugin)
             folder_name_widget = VerticalSpan:new { width = 0 }
         end
 
+        local nbitems_widget
+        if tonumber(nbitems.text) ~= 0 then
+            nbitems_widget = BottomContainer:new {
+                dimen = dimen,
+                RightContainer:new {
+                    dimen = {
+                        w = dimen.w - Folder.face.nb_items_margin,
+                        h = nb_size + Folder.face.nb_items_margin * 2 + math.ceil(nb_size * 0.125),
+                    },
+                    FrameContainer:new {
+                        padding = 0,
+                        padding_bottom = math.ceil(nb_size * 0.125),
+                        radius = math.ceil(nb_size * 0.5),
+                        background = Blitbuffer.COLOR_WHITE,
+                        CenterContainer:new { dimen = { w = nb_size, h = nb_size }, nbitems },
+                    },
+                },
+                overlap_align = "center",
+            }
+        else
+            nbitems_widget = VerticalSpan:new { width = 0 }
+        end
+
         local widget = CenterContainer:new {
             dimen = { w = self.width, h = self.height },
             VerticalGroup:new {
@@ -248,30 +278,9 @@ local function patchCoverBrowser(plugin)
                 VerticalSpan:new { width = Folder.edge.margin },
                 OverlapGroup:new {
                     dimen = { w = self.width, h = self.height - top_h },
-                    FrameContainer:new {
-                        padding = 0,
-                        bordersize = Folder.face.border_size,
-                        image,
-                        overlap_align = "center",
-                    },
+                    image_widget,
                     folder_name_widget,
-                    BottomContainer:new {
-                        dimen = dimen,
-                        RightContainer:new {
-                            dimen = {
-                                w = dimen.w - Folder.face.nb_items_margin,
-                                h = nb_size + Folder.face.nb_items_margin * 2 + math.ceil(nb_size * 0.125),
-                            },
-                            FrameContainer:new {
-                                padding = 0,
-                                padding_bottom = math.ceil(nb_size * 0.125),
-                                radius = math.ceil(nb_size * 0.5),
-                                background = Blitbuffer.COLOR_WHITE,
-                                CenterContainer:new { dimen = { w = nb_size, h = nb_size }, nbitems },
-                            },
-                        },
-                        overlap_align = "center",
-                    },
+                    nbitems_widget,
                 },
             },
         }
