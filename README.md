@@ -120,6 +120,8 @@ This patch adds 4 new options at the end of <sub><img src="img/appbar.settings.s
 - Center the image.
 - Close all the widgets before showing the screensaver.
 - Option to refresh before showing the screensaver.
+- Keep the message color even in night mode.
+- Option to invert the message color when No fill is set.
 
 By default, it does not change the sleep screen behavior.
 
