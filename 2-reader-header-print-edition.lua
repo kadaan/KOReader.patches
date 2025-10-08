@@ -1,26 +1,18 @@
 --[[
-    This user patch adds a "header" into the reader display, similar to the footer at the bottom.
-    
-    It draws two items, one to the upper left, one to the upper right, and with a small padding
-    between the text and the top edge. It is only drawn for "reflowable" documents like EPUB
-    and not for "fixed layout" documents like PDF and CBZ.
+    This user patch adds a "header" into the reader display, as well as drawing items into the
+    space traditinally used by the footer, aka "Status Bar".
+
+    It mimics the style used by many print novels:
+        The page numbers display at top-right
+        The centered text at the top displays "author - book title"
 
     It is up to you to provide enough of a top margin so that your book contents are not
     obscured by the header. You'll know right away if you need to increase the top margin.
 
-    Right now the header is configured manually, see the comments in the code below for details.
-    The set of variable names I added below match their equivalents in ReaderFooter, for better
-    or worse. I provided a set of "status bar items" that I thought made the most sense.
-    
-    If someone wanted to make a whole settings UI, I think that'd be great. Maybe even use the
-    built-in ReaderFooter UI somehow? With the new "status bar presets", maybe saving one with a
-    special name like "header_preset" and parsing it for what to display.
-    
-    But until someone does that, if what you want isn't already included here, then you can view
-    the existing ReaderFooter code at the link below. Anything it can do, this can do too, but
-    accessing values is a little different. The examples I've provided should give plenty of hints.
+    Suggestion: Combine this with a small caps font such as LMRomanSC-Regular.otf for even
+    more of a print book feel.
 
-    https://github.com/koreader/koreader/blob/master/frontend/apps/reader/modules/readerfooter.lua
+    Credits: This user patch was written in collaboration with reddit user hundredpercentcocoa
 --]]
 
 local Blitbuffer = require("ffi/blitbuffer")
@@ -45,6 +37,7 @@ local ReaderView = require("apps/reader/modules/readerview")
 local _ReaderView_paintTo_orig = ReaderView.paintTo
 local header_settings = G_reader_settings:readSetting("footer")
 local screen_width = Screen:getWidth()
+local screen_height = Screen:getHeight()
 
 ReaderView.paintTo = function(self, bb, x, y)
     _ReaderView_paintTo_orig(self, bb, x, y)
@@ -55,16 +48,19 @@ ReaderView.paintTo = function(self, bb, x, y)
 
     -- ===========================!!!!!!!!!!!!!!!=========================== -
     -- Configure formatting options for header here, if desired
-    local header_font_face = "ffont" -- this is the same font the footer uses
+    local header_font_face = "lmroman/LMRomanCaps10-Regular.otf" -- this is the same font the footer uses
     -- header_font_face = "source/SourceSerif4-Regular.ttf" -- this is the serif font from Project: Title
+    -- header_font_face = "smallcaps/LMRomanSC-Regular.otf" -- small caps style, you must supply this font yourself
     local header_font_size = header_settings.text_font_size or 14 -- Will use your footer setting if available
     local header_font_bold = header_settings.text_font_bold or false -- Will use your footer setting if available
     local header_font_color = Blitbuffer.COLOR_BLACK -- black is the default, but there's 15 other shades to try
+    -- header_font_color = Blitbuffer.COLOR_GRAY_3 -- A nice dark gray, a bit lighter than black
     local header_top_padding = Size.padding.small -- replace small with default or large for more space at the top
-    local header_use_book_margins = true -- Use same margins as book for header
-    local header_margin = Size.padding.large -- Use this instead, if book margins is set to false
-    local left_max_width_pct = 48 -- this % is how much space the left corner can use before "truncating..."
-    local right_max_width_pct = 48 -- this % is how much space the right corner can use before "truncating..."
+    local header_bottom_padding = header_settings.container_height or 7
+    local header_use_book_margins = false -- Use same margins as book for header
+    local header_margin = Screen:scaleBySize(17) -- Use this instead, if book margins is set to false
+    local right_max_width_pct = 8 -- this % is how much space the right corner can use before "truncating..."
+    local header_max_width_pct = 84 -- this % is how much space the header can use before "truncating..."
     local separator = {
         bar     = "|",
         bullet  = "•",
@@ -93,7 +89,7 @@ ReaderView.paintTo = function(self, bb, x, y)
     local chapter_progress = pages_done .. " ⁄⁄ " .. pages_chapter
     -- Author(s):
     local book_author = self.ui.doc_props.authors
-    if book_author and book_author:find("\n") then -- Show first author if multiple authors
+    if book_author:find("\n") then -- Show first author if multiple authors
         book_author =  T(_("%1 et al."), util.splitToArray(book_author, "\n")[1] .. ",")
     end
     -- Clock:
@@ -113,8 +109,16 @@ ReaderView.paintTo = function(self, bb, x, y)
 
     -- ===========================!!!!!!!!!!!!!!!=========================== -
     -- What you put here will show in the header:
-    local left_corner_header = string.format("%s", book_author)
-    local right_corner_header = string.format("%s", book_title)
+    -- Try to get reference page number if it exists
+    local page_display = pageno
+    if self.ui.pagemap and self.ui.pagemap.has_pagemap then
+        local page_label = self.ui.pagemap:getCurrentPageLabel(true)
+        if page_label and page_label ~= "" then
+            page_display = page_label
+        end
+    end
+    local right_corner_header = string.format("%s", page_display)
+    local centered_header = string.format("%s %s %s", book_author, separator.en_dash, book_title)
     -- Look up "string.format" in Lua if you need help.
     -- ===========================!!!!!!!!!!!!!!!=========================== -
 
@@ -148,15 +152,8 @@ ReaderView.paintTo = function(self, bb, x, y)
         end
         return BD.auto(fitted_text)
     end
-    left_corner_header = getFittedText(left_corner_header, left_max_width_pct)
     right_corner_header = getFittedText(right_corner_header, right_max_width_pct)
-    local left_header_text = TextWidget:new {
-        text = left_corner_header,
-        face = Font:getFace(header_font_face, header_font_size),
-        bold = header_font_bold,
-        fgcolor = header_font_color,
-        padding = 0,
-    }
+
     local right_header_text = TextWidget:new {
         text = right_corner_header,
         face = Font:getFace(header_font_face, header_font_size),
@@ -164,16 +161,39 @@ ReaderView.paintTo = function(self, bb, x, y)
         fgcolor = header_font_color,
         padding = 0,
     }
-    local dynamic_space = avail_width - left_header_text:getSize().w - right_header_text:getSize().w
-    local header = CenterContainer:new {
-        dimen = Geom:new{ w = screen_width, h = math.max(left_header_text:getSize().h, right_header_text:getSize().h) + header_top_padding },
+    local dynamic_space = avail_width - right_header_text:getSize().w
+    local header = CenterContainer:new { 
+        dimen = Geom:new{ w = screen_width, h = right_header_text:getSize().h + header_top_padding },
         VerticalGroup:new {
             VerticalSpan:new { width = header_top_padding },
             HorizontalGroup:new {
-                left_header_text,
                 HorizontalSpan:new { width = dynamic_space },
                 right_header_text,
             }
+        },
+    }
+    header:paintTo(bb, x, y)
+    header:free();
+    centered_header = getFittedText(centered_header, header_max_width_pct)
+    local header_text = TextWidget:new {
+        text = centered_header,
+        face = Font:getFace(header_font_face, header_font_size),
+        bold = header_font_bold,
+        fgcolor = header_font_color,
+        padding = 0,
+    }
+    if pages_done == 1 then
+        header_top_padding = screen_height - header_text:getSize().h - header_bottom_padding
+    end
+    header = CenterContainer:new {
+        dimen = Geom:new{ w = screen_width, h = header_text:getSize().h + header_top_padding },
+        VerticalGroup:new {
+            VerticalSpan:new { width = header_top_padding },
+            HorizontalGroup:new {
+                HorizontalSpan:new { width = left_margin },
+                header_text,
+                HorizontalSpan:new { width = right_margin },
+            },
         },
     }
     header:paintTo(bb, x, y)

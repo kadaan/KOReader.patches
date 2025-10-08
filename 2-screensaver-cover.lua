@@ -51,6 +51,17 @@ if G_reader_settings:hasNot("screensaver_invert_message_color") then
     G_reader_settings:saveSetting("screensaver_invert_message_color", false)
 end
 
+-- Margin settings (default to {0, 0} for horizontal, 0 for top/bottom)
+if G_reader_settings:hasNot("screensaver_h_margin_sizes") then
+    G_reader_settings:saveSetting("screensaver_h_margin_sizes", {0, 0})
+end
+if G_reader_settings:hasNot("screensaver_t_margin_size") then
+    G_reader_settings:saveSetting("screensaver_t_margin_size", 0)
+end
+if G_reader_settings:hasNot("screensaver_b_margin_size") then
+    G_reader_settings:saveSetting("screensaver_b_margin_size", 0)
+end
+
 local userpatch = require("userpatch")
 local addOverlayMessage = userpatch.getUpValue(Screensaver.show, "addOverlayMessage")
 
@@ -200,14 +211,23 @@ Screensaver.show = function(self)
     local widget = nil
     local center_image = false
     if is_cover_or_image then
-        local image_height = Screen:getHeight()
+        -- Get margin settings
+        local h_margins = G_reader_settings:readSetting("screensaver_h_margin_sizes") or {0, 0}
+        local margin_left = h_margins[1] or 0
+        local margin_right = h_margins[2] or 0
+        local margin_top = G_reader_settings:readSetting("screensaver_t_margin_size") or 0
+        local margin_bottom = G_reader_settings:readSetting("screensaver_b_margin_size") or 0
+
+        local image_height = Screen:getHeight() - margin_top - margin_bottom
+        local image_width = Screen:getWidth() - margin_left - margin_right
+
         if not overlap_message then
             center_image = G_reader_settings:readSetting("screensaver_center_image")
             image_height = image_height - message_widget[1]:getSize().h * (center_image and 2 or 1)
         end
 
         local widget_settings = {
-            width = Screen:getWidth(),
+            width = image_width,
             height = image_height,
             scale_factor = G_reader_settings:isFalse("screensaver_stretch_images") and 0 or nil,
             stretch_limit_percentage = G_reader_settings:readSetting("screensaver_stretch_limit_percentage"),
@@ -245,6 +265,28 @@ Screensaver.show = function(self)
             widget_settings.rotation_angle = angle
         end
         widget = ImageWidget:new(widget_settings)
+
+        -- Wrap the image widget with margins if any margins are set
+        if margin_top > 0 or margin_bottom > 0 or margin_left > 0 or margin_right > 0 then
+            local LeftContainer = require("ui/widget/container/leftcontainer")
+            local RightContainer = require("ui/widget/container/rightcontainer")
+            local HorizontalGroup = require("ui/widget/horizontalgroup")
+            local HorizontalSpan = require("ui/widget/horizontalspan")
+
+            -- Wrap with horizontal margins
+            widget = HorizontalGroup:new{
+                HorizontalSpan:new{ width = margin_left },
+                widget,
+                HorizontalSpan:new{ width = margin_right },
+            }
+
+            -- Wrap with vertical margins
+            widget = VerticalGroup:new{
+                VerticalSpan:new{ width = margin_top },
+                widget,
+                VerticalSpan:new{ width = margin_bottom },
+            }
+        end
     elseif self.screensaver_type == "bookstatus" then
         local ReaderUI = require("apps/reader/readerui")
         widget = BookStatusWidget:new {
@@ -435,6 +477,119 @@ local function add_options_in(menu)
     })
 end
 
+local function add_margin_options_to_wallpaper(menu)
+    -- Find "Wallpaper" submenu
+    local wallpaper_menu = find_item_from_path(menu.sub_item_table, _("Wallpaper"))
+    if not wallpaper_menu or not wallpaper_menu.sub_item_table then
+        logger.warn("Could not find 'Wallpaper' menu to add margin options")
+        return
+    end
+
+    -- Add screensaver margin options using spinwidget UI like reader margins
+    local SpinWidget = require("ui/widget/spinwidget")
+    local DoubleSpinWidget = require("ui/widget/doublespinwidget")
+    local UIManager = require("ui/uimanager")
+
+    local function createSingleMarginItem(text, help_text, setting_name, title_text)
+        return {
+            text = text,
+            help_text = help_text,
+            keep_menu_open = true,
+            callback = function(touchmenu_instance)
+                local margin = G_reader_settings:readSetting(setting_name) or 0
+                local widget = SpinWidget:new{
+                    title_text = title_text,
+                    value = margin,
+                    value_min = 0,
+                    value_max = 140,
+                    default_value = 140,
+                    value_step = 1,
+                    value_hold_step = 5,
+                    ok_text = _("Set"),
+                    ok_always_enabled = true,
+                    callback = function(spin)
+                        G_reader_settings:saveSetting(setting_name, spin.value)
+                        if touchmenu_instance then touchmenu_instance:updateItems() end
+                    end,
+                    extra_text = _("No margin"),
+                    extra_callback = function()
+                        G_reader_settings:saveSetting(setting_name, 0)
+                        if touchmenu_instance then touchmenu_instance:updateItems() end
+                    end,
+                }
+                UIManager:show(widget)
+            end,
+        }
+    end
+
+    -- Create "Margins" submenu as sibling to "Border fill, rotation, and fit"
+    table.insert(wallpaper_menu.sub_item_table, {
+        text = _("Margins"),
+        enabled_func = function()
+            return G_reader_settings:readSetting("screensaver_type") == "cover"
+                   or G_reader_settings:readSetting("screensaver_type") == "document_cover"
+                   or G_reader_settings:readSetting("screensaver_type") == "random_image"
+        end,
+        sub_item_table = {
+            -- Horizontal margins (L/R)
+            {
+                text = _("L/R Margins"),
+                help_text = _("Set left and right margins for screensaver images."),
+                keep_menu_open = true,
+                callback = function(touchmenu_instance)
+                    local margins = G_reader_settings:readSetting("screensaver_h_margin_sizes") or {0, 0}
+                    local widget = DoubleSpinWidget:new{
+                        title_text = _("Left/Right Margins"),
+                        width_factor = 0.6,
+                        left_text = _("Left"),
+                        left_value = margins[1],
+                        left_default = 140,
+                        left_min = 0,
+                        left_max = 140,
+                        left_step = 1,
+                        left_hold_step = 5,
+                        right_text = _("Right"),
+                        right_value = margins[2],
+                        right_default = 140,
+                        right_min = 0,
+                        right_max = 140,
+                        right_step = 1,
+                        right_hold_step = 5,
+                        ok_text = _("Set"),
+                        ok_always_enabled = true,
+                        callback = function(left, right)
+                            G_reader_settings:saveSetting("screensaver_h_margin_sizes", {left, right})
+                            if touchmenu_instance then touchmenu_instance:updateItems() end
+                        end,
+                        extra_text = _("No margins"),
+                        extra_callback = function()
+                            G_reader_settings:saveSetting("screensaver_h_margin_sizes", {0, 0})
+                            if touchmenu_instance then touchmenu_instance:updateItems() end
+                        end,
+                    }
+                    UIManager:show(widget)
+                end,
+            },
+            -- Top margin
+            createSingleMarginItem(
+                _("Top Margin"),
+                _("Set top margin for screensaver images."),
+                "screensaver_t_margin_size",
+                _("Top Margin")
+            ),
+            -- Bottom margin
+            createSingleMarginItem(
+                _("Bottom Margin"),
+                _("Set bottom margin for screensaver images."),
+                "screensaver_b_margin_size",
+                _("Bottom Margin")
+            ),
+        },
+    })
+
+    logger.info("Added 'Margins' submenu to Wallpaper menu")
+end
+
 local function add_options_in_screensaver(order, menu, menu_name)
     local buttons = order["KOMenu:menu_buttons"]
     for i, button in ipairs(buttons) do
@@ -445,6 +600,7 @@ local function add_options_in_screensaver(order, menu, menu_name)
                 local sub_menu = find_item_from_path(setting_menu, _("Screen"), _("Sleep screen"))
                 if sub_menu then
                     add_options_in(sub_menu)
+                    add_margin_options_to_wallpaper(sub_menu)
                     logger.info("Add screensaver options in", menu_name, "menu")
                 end
             end
