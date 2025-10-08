@@ -40,7 +40,7 @@ jobs:
                           md5s[path.lstrip("./")] = md5
 
           with open("updates.json", "w") as f:
-              json.dump(md5s, f, indent=2)
+              json.dump(md5s, f, indent=2, sort_keys=True)
 
         shell: python
 

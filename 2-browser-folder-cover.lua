@@ -241,18 +241,22 @@ local function patchCoverBrowser(plugin)
 
         local nbitems_widget
         if tonumber(nbitems.text) ~= 0 then
+            local padding_right = 10  -- Padding from right edge
+            local padding_bottom = 10 -- Padding from bottom edge
+    
             nbitems_widget = BottomContainer:new {
                 dimen = dimen,
                 RightContainer:new {
                     dimen = {
-                        w = dimen.w - Folder.face.nb_items_margin,
-                        h = nb_size + Folder.face.nb_items_margin * 2 + math.ceil(nb_size * 0.125),
+                        w = dimen.w - Folder.face.nb_items_margin - padding_right,
+                        h = nb_size + Folder.face.nb_items_margin * 1 + math.ceil(nb_size * 0.125) + padding_bottom,
                     },
                     FrameContainer:new {
                         padding = 0,
-                        padding_bottom = math.ceil(nb_size * 0.125),
+                        margin_bottom = padding_bottom,
+                        margin_right = padding_right,
                         radius = math.ceil(nb_size * 0.5),
-                        background = Blitbuffer.COLOR_WHITE,
+                        background = Blitbuffer.COLOR_GRAY_B, -- was white
                         CenterContainer:new { dimen = { w = nb_size, h = nb_size }, nbitems },
                     },
                 },

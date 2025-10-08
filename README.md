@@ -89,15 +89,6 @@ You'll find it in <sub><img src="img/appbar.settings.svg" style="width:2%; heigh
 
 <img src="img/status_bar_color.png" style="width:25%; height:auto;">
 
-### [🞂 2-filemanager-titlebar](2-filemanager-titlebar.lua) 
-This patch shows information in the file manager title bar.
-
-You'll find it in <sub><img src="img/appbar.navigation.svg" style="width:2%; height:auto;"></sub> **🞂 Title bar**, where you can change all the settings and rearrange the items in the title bar.
-
-There are plenty of items and settings to play with.
-
-<img src="img/title_bar.png" style="width:35%; height:auto;">
-
 ### [🞂 2-reference-page-count](2-reference-page-count.lua)
 This patch fixes the reference page count, so the status bar shows the actual number of pages when using the reference page option.
 
@@ -134,5 +125,30 @@ This patch enhances compact mode in the status bar:
 
 <img src="img/compact.png" style="width:60%; height:auto;">
 
-### [🞂 2-disable-top-menu-zones](2-disable-top-menu-zones.lua) 
+### [🞂 2-disable-top-menu-zones](2-disable-top-menu-zones.lua)
 This patch removes the top menu swipe and tap zones, so you'll be sure to open it in the last tab you were on.
+
+### [🞂 2-menutext-overrides](2-menutext-overrides.lua)
+This patch modifies filenames in the file browser, replacing underscores with spaces and moving trailing articles (", The", ", An", ", A") to the front.
+
+Example: "Frog_Bucket,_The" displays as "The Frog Bucket"
+
+### [🞂 2-project-title-font-override](2-project-title-font-override.lua)
+This patch is primarily for use with the Project: Title plugin. It sets the UI fonts to the sans serif font used in the plugin (SourceSans3).
+
+### [🞂 2-project-title-reader-footer-font-override](2-project-title-reader-footer-font-override.lua)
+This patch is primarily for use with the Project: Title plugin. It sets the status bar (footer) font to the serif font used in the plugin (SourceSerif4).
+
+### [🞂 2-project-title-disable-fullyread-progressbars](2-project-title-disable-fullyread-progressbars.lua)
+This patch is primarily for use with the Project: Title plugin. It hides progress bars in Cover Grid when a book has been finished, with an optional setting to display a trophy icon in the lower right corner.
+
+### [🞂 2-project-title-disable-unread-progressbars](2-project-title-disable-unread-progressbars.lua)
+This patch is primarily for use with the Project: Title plugin. It hides progress bars in Cover Grid when a book has not been opened yet.
+
+### [🞂 2-reader-header-cornered](2-reader-header-cornered.lua)
+This patch adds a "header" into the reader display (similar to the footer at the bottom), with two items displayed in the upper left and upper right corners. Only works for reflowable documents like EPUB.
+
+### [🞂 2-project-title-trailing-article](2-project-title-trailing-article.lua)
+This patch is primarily for use with the Project: Title plugin. It moves trailing articles (", The", ", An", ", A") to the front of folder names displayed in the bottom-left footer.
+
+Example: "Wheel of Time, The" displays as "The Wheel of Time"
