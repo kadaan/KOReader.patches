@@ -54,7 +54,7 @@ This patch _requires_ at least KOReader v2025.04.107.
 
 This patch lets you update all the patches here.
 
-You'll find the update option in <sub><img src="img/appbar.tools.svg" style="width:2%; height:auto;"></sub> **🞂 More tools 🞂 Update sebdelsol/KOReader.patches**
+You'll find the update option in <sub><img src="img/appbar.tools.svg" style="width:2%; height:auto;"></sub> **🞂 More tools 🞂 Update kadaan/KOReader.patches**
 
 <img src="img/update.png" style="width:25%; height:auto;">
 

@@ -26,7 +26,7 @@ local T = require("ffi/util").template
 local logger = require("logger")
 
 local UPDATES = "updates.json" -- dict of md5 of lua files
-local GITHUB_REPO = "sebdelsol/KOReader.patches"
+local GITHUB_REPO = "kadaan/KOReader.patches"
 local LOCAL_PATCHES = DataStorage:getDataDir() .. "/patches/"
 local ONLINE_PATCHES = "https://github.com/" .. GITHUB_REPO .. "/raw/refs/heads/main/"
 
