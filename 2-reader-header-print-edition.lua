@@ -109,9 +109,9 @@ ReaderView.paintTo = function(self, bb, x, y)
 
     -- ===========================!!!!!!!!!!!!!!!=========================== -
     -- What you put here will show in the header:
-    -- Try to get reference page number if it exists
+    -- Try to get reference page number if it exists and is enabled
     local page_display = pageno
-    if self.ui.pagemap and self.ui.pagemap.has_pagemap then
+    if self.ui.pagemap and self.ui.pagemap.has_pagemap and self.ui.pagemap.use_page_labels then
         local page_label = self.ui.pagemap:getCurrentPageLabel(true)
         if page_label and page_label ~= "" then
             page_display = page_label
