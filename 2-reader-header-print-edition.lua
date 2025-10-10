@@ -182,9 +182,6 @@ ReaderView.paintTo = function(self, bb, x, y)
         fgcolor = header_font_color,
         padding = 0,
     }
-    if pages_done == 1 then
-        header_top_padding = screen_height - header_text:getSize().h - header_bottom_padding
-    end
     header = CenterContainer:new {
         dimen = Geom:new{ w = screen_width, h = header_text:getSize().h + header_top_padding },
         VerticalGroup:new {
